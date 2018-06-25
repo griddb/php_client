@@ -79,7 +79,7 @@ GridDB Server need to be started in advance.
 - trigger, affinity
 
 Please refer to the following files for more detailed information.  
-- [PHP Client API Reference](https://griddb.github.io/go_client/PHPAPIReference.htm)
+- [PHP Client API Reference](https://griddb.github.io/php_client/PHPAPIReference.htm)
 
 About API:
 - When an error occurs, an exception GSException is thrown.
