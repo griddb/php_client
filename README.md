@@ -42,25 +42,48 @@ Set LIBRARY_PATH.
 
     $ make
 
-	2. Write the following desctiption in /etc/php.ini.
+    2. Include 'griddb_php_client.php' in PHP.
 
-	extension=<PHP client library file directory path>
-
-    3. Include 'griddb_php_client.php' in PHP.
-
-### How to run sample
+### How to run sample (with Command Line)
 
 GridDB Server need to be started in advance.
 
-    1. Set LD_LIBRARY_PATH.
+	1. Write the following desctiption in /etc/php.ini.
+
+	    extension=<PHP client library file directory path>
+	
+    2. Set LD_LIBRARY_PATH.
 
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:<C client library file directory path>
 
-    2. The command to run sample
+    3. The command to run sample
 
         $ php sample/sample1.php <GridDB notification address> <GridDB notification port>
             <GridDB cluster name> <GridDB user> <GridDB password>
           -->Person: name=name02 status=false count=2 lob=ABCDEFGHIJ
+
+### How to run sample (with Web Browser)
+
+GridDB Server need to be started in advance.
+
+In the case of Web Server: Apache/2.2.15, please use the following steps.
+ 
+    1. Store griddb_php_client.php and sample/sample1_web.php in /var/www/html.
+
+    2. Store griddb_php_client.so in /usr/lib64/php/modules.
+
+    3. Add extension for griddb_php_client.so in /etc/php.ini.rpmsave or /etc/php/7.2/apache2/php.ini.
+        extension=griddb_php_client.so
+
+    4. Set LD_LIBRARY_PATH.
+
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:<C client library file directory path>
+
+    5. Restart httpd/apache.
+
+    6. In web browser, run : http://localhost:8000/sample1_web.php.
+
+    7. Click submit button after entering address, port, cluster, user and password.
 
 ## Function
 
