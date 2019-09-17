@@ -12,8 +12,8 @@ Building of the library and execution of the sample programs have been checked i
     SWIG:            4.0.0
     GCC:             4.8.5
     PHP:             7
-    GridDB Server:   3.0 (CE)
-    GridDB C Client: 3.0 (CE)
+    GridDB Server:   4.2 (CE)
+    GridDB C Client: 4.2 (CE)
 
 ## QuickStart
 ### Preparations
