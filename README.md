@@ -4,6 +4,9 @@ GridDB PHP Client
 
 GridDB PHP Client is developed using GridDB C Client and [SWIG](http://www.swig.org/) (Simplified Wrapper and Interface Generator).  
 
+(Additional information)  
+There is [PHP Client package on Packagist repository](https://packagist.org/packages/griddb/php-client) .
+
 ## Operating environment
 
 Building of the library and execution of the sample programs have been checked in the following environment.
