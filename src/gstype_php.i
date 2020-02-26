@@ -517,3 +517,6 @@
     ZVAL_STRINGL(&o, (const char*)pValue$argnum.data, pValue$argnum.size);
     t_output_helper($result, &o);
 }
+
+// Type check for GSBool type
+%php_typecheck2(GSBool, SWIG_TYPECHECK_BOOL, IS_TRUE, IS_FALSE)

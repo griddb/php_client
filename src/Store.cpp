@@ -67,9 +67,10 @@ namespace griddb {
 				rowKeyAssigned,
 				columnOrderIgnorable
 				};
+		GSTimeSeriesProperties timeSeriesProp;
 		if (rowExpirationTime && rowExpirationTimeUnit
 				&& expirationDivisionCount) {
-			GSTimeSeriesProperties timeSeriesProp = { rowExpirationTime,
+			timeSeriesProp = { rowExpirationTime,
 					rowExpirationTimeUnit,
 					-1, //compressionWindowSize : unlimited
 					0, //compressionWindowSizeUnit
