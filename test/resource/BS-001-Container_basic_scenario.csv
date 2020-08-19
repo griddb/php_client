@@ -1,0 +1,10 @@
+testId,containerType,containerName,rowKeyList,GS_TYPE_STRING,GS_TYPE_BOOL,GS_TYPE_DOUBLe,queryCommand,expectedOutput
+BS-001-Container_basic_scenario-001,GS_CONTAINER_COLLECTION,Abc_123,[10;20;30],abc,True,1.1,select MIN(a_9),0
+BS-001-Container_basic_scenario-002,GS_CONTAINER_COLLECTION,Abc_124,[10;20;3.3],abc,True,1.1,select MAX(za),1
+BS-001-Container_basic_scenario-003,GS_CONTAINER_COLLECTION,Abc_125,[10;20;30],abc,False,False,select MIN(a_9),1
+BS-001-Container_basic_scenario-004,GS_CONTAINER_TIME_SERIES,Abc_126,[2018-12-01T10:00:00.000Z;2018-12-01T10:10:00.000Z;2018-12-01T10:20:00.000Z],abc,True,1.1,select MAX(za),0
+BS-001-Container_basic_scenario-005,GS_CONTAINER_TIME_SERIES,Abc_127,[2018-12-01T10:00:00.000Z;2018-12-01T10:10:00.000Z;3.3],abc,True,1.1,select MIN(a_91),1
+BS-001-Container_basic_scenario-006,GS_CONTAINER_TIME_SERIES,Abc_128,[2018-12-01T10:00:00.000Z;2018-12-01T10:10:00.000Z;2018-12-01T10:20:00.000Z],abc,False,1,select MAX(za1),1
+BS-001-Container_basic_scenario-007,GS_CONTAINER_TIME_SERIES,Abc_128<.>/?;:[]{}~`!@#$%^&*(),[2018-12-01T10:00:00.000Z;2018-12-01T10:10:00.000Z;2018-12-01T10:20:00.000Z],abc,False,1,select MAX(za),1
+BS-001-Container_basic_scenario-008,GS_CONTAINER_TIME_SERIES,Abc_128'ﾘﾝｸﾞ,[2018-12-01T10:00:00.000Z;2018-12-01T10:10:00.000Z;2018-12-01T10:20:00.000Z],abc,False,1,select MAX(za),1
+BS-001-Container_basic_scenario-009,GS_CONTAINER_TIME_SERIES,Abc_128リング,[2018-12-01T10:00:00.000Z;2018-12-01T10:10:00.000Z;2018-12-01T10:20:00.000Z],abc,False,1,select MAX(za),1

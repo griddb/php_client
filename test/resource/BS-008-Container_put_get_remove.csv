@@ -1,0 +1,5 @@
+testId, containerType, rowKey, rowKeyType, GS_TYPE_BYTE, GS_TYPE_SHORT, GS_TYPE_BOOL, GS_TYPE_FLOAT , GS_TYPE_DOUBLE, GS_TYPE_BLOB, expectedOutput
+BS-008-Container_put_get_remove-001,GS_CONTAINER_COLLECTION,abc,string,127,32767,True,1.1,9.9,ABC,0
+BS-008-Container_put_get_remove-002,GS_CONTAINER_COLLECTION,2147483647,integer,32,767,False,1.1,9.9,[1;2;3],0
+BS-008-Container_put_get_remove-003,GS_CONTAINER_COLLECTION,9223372036854775807,long,32,767,True,1.1,9.9,[1;2;3],0
+BS-008-Container_put_get_remove-004,GS_CONTAINER_TIME_SERIES,9999-12-31T23:59:59.999Z,timestamp,32,767,True,1.1,9.9,[1;2;3],0

@@ -1,0 +1,3 @@
+testId, containerType, columnInfo, indexType, expectedOutput
+BS-005-Container_index_create_drop-001,GS_CONTAINER_COLLECTION,1_a:GS_TYPE_INTEGER,GS_INDEX_FLAG_HASH,0
+BS-005-Container_index_create_drop-002,GS_CONTAINER_TIME_SERIES,Z0:GS_TYPE_BYTE,,0
