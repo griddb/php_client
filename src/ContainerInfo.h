@@ -52,8 +52,8 @@ class ContainerInfo {
 
     public:
         ContainerInfo(GSContainerInfo *containerInfo);
-        ContainerInfo(const GSChar* name, const GSColumnInfo* props,
-                int propsCount, GSContainerType type = GS_CONTAINER_COLLECTION,
+        ContainerInfo(const GSChar* name = NULL, const GSColumnInfo* props = NULL,
+                int propsCount = 0, GSContainerType type = GS_CONTAINER_COLLECTION,
                 bool row_key = true, ExpirationInfo* expiration = NULL);
         ~ContainerInfo();
 
