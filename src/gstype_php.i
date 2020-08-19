@@ -14,18 +14,20 @@
     limitations under the License.
 */
 
-#define ARRAY_SIZE(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
+#define ARRAY_SIZE(x) \
+    ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 %{
 #include "zend_interfaces.h"
 %}
 /*
  * Change method names in PHP
  */
-//Rename all method to camel cases
+// Rename all method to camel cases
 %rename("%(lowercamelcase)s", %$isfunction) "";
-//"getMessage" is a default final method of Exception class in PHP. So convert name into getErrorMessage
+// "getMessage" is a default final method of Exception class in PHP.
+// So convert name into getErrorMessage
 %rename(getErrorMessage) griddb::GSException::get_message;
-//"default" is a PHP keyword. So convert name into DEFAULT_TYPE
+// "default" is a PHP keyword. So convert name into DEFAULT_TYPE
 %rename(DEFAULT_TYPE) griddb::IndexType::DEFAULT;
 
 /*
@@ -33,34 +35,41 @@
  */
 %include <attribute.i>
 
-//Read only attribute Container::type
+// Read only attribute Container::type
 %attribute(griddb::Container, int, type, get_type);
-//Read only attribute GSException::isTimeout
+// Read only attribute GSException::isTimeout
 %attribute(griddb::GSException, bool, isTimeout, is_timeout);
-//Read only attribute RowSet::size
+// Read only attribute RowSet::size
 %attribute(griddb::RowSet, int32_t, size, size);
-//Read only attribute RowSet::type
+// Read only attribute RowSet::type
 %attribute(griddb::RowSet, GSRowSetType, type, type);
-//Read only attribute ContainerInfo::name
+// Read only attribute ContainerInfo::name
 %attribute(griddb::ContainerInfo, GSChar*, name, get_name, set_name);
-//Read only attribute ContainerInfo::type
+// Read only attribute ContainerInfo::type
 %attribute(griddb::ContainerInfo, GSContainerType, type, get_type, set_type);
-//Read only attribute ContainerInfo::rowKey
-%attribute(griddb::ContainerInfo, bool, rowKey, get_row_key_assigned, set_row_key_assigned);
-//Read only attribute ContainerInfo::columnInfoArray
-%attributeval(griddb::ContainerInfo, ColumnInfoList, columnInfoArray, get_column_info_list, set_column_info_list);
-//Read only attribute ContainerInfo::expiration
-%attribute(griddb::ContainerInfo, griddb::ExpirationInfo*, expiration, get_expiration_info, set_expiration_info);
-//Read only attribute ExpirationInfo::time
+// Read only attribute ContainerInfo::rowKey
+%attribute(griddb::ContainerInfo, bool, rowKey,
+           get_row_key_assigned, set_row_key_assigned);
+// Read only attribute ContainerInfo::columnInfoArray
+%attributeval(griddb::ContainerInfo, ColumnInfoList, columnInfoArray,
+              get_column_info_list, set_column_info_list);
+// Read only attribute ContainerInfo::expiration
+%attribute(griddb::ContainerInfo, griddb::ExpirationInfo*, expiration,
+           get_expiration_info, set_expiration_info);
+// Read only attribute ExpirationInfo::time
 %attribute(griddb::ExpirationInfo, int, time, get_time, set_time);
-//Read only attribute ExpirationInfo::unit
-%attribute(griddb::ExpirationInfo, GSTimeUnit, unit, get_time_unit, set_time_unit);
-//Read only attribute ExpirationInfo::divisionCount
-%attribute(griddb::ExpirationInfo, int, divisionCount, get_division_count, set_division_count);
-//Read only attribute Store::partitionController
-%attribute(griddb::Store, griddb::PartitionController*, partitionController, partition_info);
-//Read only attribute PartitionController::partitionCount
-%attribute(griddb::PartitionController, int, partitionCount, get_partition_count);
+// Read only attribute ExpirationInfo::unit
+%attribute(griddb::ExpirationInfo, GSTimeUnit, unit,
+           get_time_unit, set_time_unit);
+// Read only attribute ExpirationInfo::divisionCount
+%attribute(griddb::ExpirationInfo, int, divisionCount,
+           get_division_count, set_division_count);
+// Read only attribute Store::partitionController
+%attribute(griddb::Store, griddb::PartitionController*,
+           partitionController, partition_info);
+// Read only attribute PartitionController::partitionCount
+%attribute(griddb::PartitionController, int, partitionCount,
+           get_partition_count);
 
 /*
  * Ignore unnecessary functions
@@ -79,12 +88,14 @@ static void throwGSException(griddb::GSException* exception) {
     // Create a resource
     zval resource;
 
-    SWIG_SetPointerZval(&resource, (void *)exception, $descriptor(griddb::GSException *), 1);
+    SWIG_SetPointerZval(&resource, reinterpret_cast<void *>(exception),
+                        $descriptor(griddb::GSException *), 1);
     zval ex;
     zval ctorRv;
 
     // Create a PHP GSException object
-    zend_string * objTypenameZend = zend_string_init(objTypename, objTypenameLen, 0);
+    zend_string * objTypenameZend = zend_string_init(objTypename,
+                                                     objTypenameLen, 0);
     zend_class_entry* ce = zend_lookup_class(objTypenameZend);
     zend_string_release(objTypenameZend);
     if (!ce) {
@@ -95,7 +106,8 @@ static void throwGSException(griddb::GSException* exception) {
 
     // Constructor, pass resource to constructor argument
     zend_function* constructor = zend_std_get_constructor(Z_OBJ(ex));
-    zend_call_method(&ex, ce, &constructor, NULL, 0, &ctorRv, 1, &resource, NULL TSRMLS_CC);
+    zend_call_method(&ex, ce, &constructor, NULL, 0, &ctorRv,
+                     1, &resource, NULL TSRMLS_CC);
     if (Z_TYPE(ctorRv) != IS_UNDEF) {
         zval_ptr_dtor(&ctorRv);
     }
@@ -105,7 +117,7 @@ static void throwGSException(griddb::GSException* exception) {
     }
 }
 
-%typemap(throws, fragment="throwGSException") griddb::GSException %{
+%typemap(throws, fragment = "throwGSException") griddb::GSException %{
     griddb::GSException* tmpException = new griddb::GSException(&$1);
     throwGSException(tmpException);
     return;
@@ -121,15 +133,14 @@ static void throwGSException(griddb::GSException* exception) {
         const char* username, const char* password,
         const char* notification_member, const char* notification_provider)
         (HashTable *arr, HashPosition pos, zval *data) {
-
     if (Z_TYPE_P(&$input) != IS_ARRAY) {
         SWIG_PHP_Error(E_ERROR, "Expected associative array as input");
     }
 
     arr = Z_ARRVAL_P(&$input);
-    int length = (int) zend_hash_num_elements(arr);
+    int length = zend_hash_num_elements(arr);
     char* name = 0;
-    //Create $1, $2, $3, $3, $4, $5, $6, $7, $8 with default value
+    // Create $1, $2, $3, $3, $4, $5, $6, $7, $8 with default value
     $1 = NULL;
     $2 = 0;
     $3 = NULL;
@@ -138,85 +149,91 @@ static void throwGSException(griddb::GSException* exception) {
     $6 = NULL;
     $7 = NULL;
     $8 = NULL;
-    if (length > 0) {
-        zend_string *key;
-        int key_len;
-        long index;
-        for (zend_hash_internal_pointer_reset_ex(arr, &pos);
-                (data = zend_hash_get_current_data_ex(arr, &pos)) != NULL;
-                zend_hash_move_forward_ex(arr, &pos)) {
-            if (zend_hash_get_current_key_ex(arr, &key, (zend_ulong*)&index, &pos) == HASH_KEY_IS_STRING) {
-                name = ZSTR_VAL(key);
-                if (strcmp(name, "host") == 0) {
-                    if (Z_TYPE_P(data) != IS_STRING){
-                        SWIG_PHP_Error(E_ERROR, "Expected string as input for host property");
-                    }
-                    $1 = Z_STRVAL_P(data);
-                }
-                else if (strcmp(name, "port") == 0) {
-                    //Input valid is number only
-                    if (Z_TYPE_P(data) != IS_LONG){
-                        SWIG_PHP_Error(E_ERROR, "Expected integer as input for port number property");
-                    }
-                    $2 = Z_LVAL_P(data);
-                }
-                else if (strcmp(name, "clusterName") == 0) {
-                    if (Z_TYPE_P(data) != IS_STRING){
-                        SWIG_PHP_Error(E_ERROR, "Expected string as input for clusterName property");
-                    }
-                    $3 = Z_STRVAL_P(data);
-                }
-                else if (strcmp(name, "database") == 0) {
-                    if (Z_TYPE_P(data) != IS_STRING){
-                        SWIG_PHP_Error(E_ERROR, "Expected string as input for database property");
-                    }
-                    $4 = Z_STRVAL_P(data);
-                }
-                else if (strcmp(name, "username") == 0) {
-                    if (Z_TYPE_P(data) != IS_STRING){
-                        SWIG_PHP_Error(E_ERROR, "Expected string as input for username property");
-                    }
-                    $5 = Z_STRVAL_P(data);
-                }
-                else if (strcmp(name, "password") == 0) {
-                    if (Z_TYPE_P(data) != IS_STRING){
-                        SWIG_PHP_Error(E_ERROR, "Expected string as input for password property");
-                    }
-                    $6 = Z_STRVAL_P(data);
-                }
-                else if (strcmp(name, "notificationMember") == 0) {
-                    if (Z_TYPE_P(data) != IS_STRING){
-                        SWIG_PHP_Error(E_ERROR, "Expected string as input for notificationMember property");
-                    }
-                    $7 = Z_STRVAL_P(data);
-                }
-                else if (strcmp(name, "notificationProvider") == 0) {
-                    if (Z_TYPE_P(data) != IS_STRING){
-                        SWIG_PHP_Error(E_ERROR, "Expected string as input for host notificationProvider property");
-                    }
-                    $8 = Z_STRVAL_P(data);
-                } else {
-                    SWIG_PHP_Error(E_ERROR, "Invalid Property");
-                };
-            } else {
-                SWIG_PHP_Error(E_ERROR, "Expected string as input for key");
+
+    if (length == 0) {
+        SWIG_PHP_Error(E_ERROR, "Expect not empty array as input");
+    }
+
+    zend_string *key;
+    int key_len;
+    ulong index;
+    for (zend_hash_internal_pointer_reset_ex(arr, &pos);
+            (data = zend_hash_get_current_data_ex(arr, &pos)) != NULL;
+            zend_hash_move_forward_ex(arr, &pos)) {
+        if (zend_hash_get_current_key_ex(arr, &key, &index,
+                                         &pos) != HASH_KEY_IS_STRING) {
+            SWIG_PHP_Error(E_ERROR, "Expected string as input for key");
+        }
+
+        name = ZSTR_VAL(key);
+        if (strcmp(name, "host") == 0) {
+            if (Z_TYPE_P(data) != IS_STRING) {
+                SWIG_PHP_Error(E_ERROR, "Expected string as"
+                    " input for host property");
             }
+            $1 = Z_STRVAL_P(data);
+        } else if (strcmp(name, "port") == 0) {
+            // Input valid is number only
+            if (Z_TYPE_P(data) != IS_LONG) {
+                SWIG_PHP_Error(E_ERROR, "Expected integer as"
+                    " input for port number property");
+            }
+            $2 = Z_LVAL_P(data);
+        } else if (strcmp(name, "clusterName") == 0) {
+            if (Z_TYPE_P(data) != IS_STRING) {
+                SWIG_PHP_Error(E_ERROR, "Expected string as"
+                    " input for clusterName property");
+            }
+            $3 = Z_STRVAL_P(data);
+        } else if (strcmp(name, "database") == 0) {
+            if (Z_TYPE_P(data) != IS_STRING) {
+                SWIG_PHP_Error(E_ERROR, "Expected string as"
+                    " input for database property");
+            }
+            $4 = Z_STRVAL_P(data);
+        } else if (strcmp(name, "username") == 0) {
+            if (Z_TYPE_P(data) != IS_STRING) {
+                SWIG_PHP_Error(E_ERROR, "Expected string as"
+                    " input for username property");
+            }
+            $5 = Z_STRVAL_P(data);
+        } else if (strcmp(name, "password") == 0) {
+            if (Z_TYPE_P(data) != IS_STRING) {
+                SWIG_PHP_Error(E_ERROR, "Expected string as"
+                    " input for password property");
+            }
+            $6 = Z_STRVAL_P(data);
+        } else if (strcmp(name, "notificationMember") == 0) {
+            if (Z_TYPE_P(data) != IS_STRING) {
+                SWIG_PHP_Error(E_ERROR, "Expected string as"
+                    " input for notificationMember property");
+            }
+            $7 = Z_STRVAL_P(data);
+        } else if (strcmp(name, "notificationProvider") == 0) {
+            if (Z_TYPE_P(data) != IS_STRING) {
+                SWIG_PHP_Error(E_ERROR, "Expected string as"
+                    " input for host notificationProvider property");
+            }
+            $8 = Z_STRVAL_P(data);
+        } else {
+            SWIG_PHP_Error(E_ERROR, "Invalid Property");
         }
     }
 }
 
 /**
  * Typemaps for ContainerInfo : support keyword parameter ("name" : str,
- * "columnInfoArray" : array, "type" : int, 'rowKey' : boolean, "expiration" : expiraion object)
+ * "columnInfoArray" : array, "type" : int, 'rowKey' : boolean,
+ * "expiration" : expiraion object)
  */
 %typemap(in, numinputs = 1) (const GSChar* name, const GSColumnInfo* props,
         int propsCount, GSContainerType type, bool row_key,
         griddb::ExpirationInfo* expiration)
-        (HashTable *arrContainerInfo, HashPosition posContainerInfo, zval *dataContainerInfo,
-                HashTable *arrColumnInfoArray, HashPosition posColumnInfoArray, zval *dataColumnInfoArray,
-                HashTable *arrColumnInfo, HashPosition posColumnInfo,
-                zval *columnName, zval *columnType) {
-
+        (HashTable *arrContainerInfo, HashPosition posContainerInfo,
+            zval *dataContainerInfo, HashTable *arrColumnInfoArray,
+            HashPosition posColumnInfoArray, zval *dataColumnInfoArray,
+            HashTable *arrColumnInfo, HashPosition posColumnInfo,
+            zval *columnName, zval *columnType) {
     if (Z_TYPE_P(&$input) != IS_ARRAY) {
         SWIG_PHP_Error(E_ERROR, "Expected associative array as input");
     }
@@ -227,101 +244,116 @@ static void throwGSException(griddb::GSException* exception) {
     $2 = NULL;
     $3 = 0;
     $4 = GS_CONTAINER_COLLECTION;
-    $5 = true;//default value rowKey = true
+    $5 = true;  // default value rowKey = true
     $6 = NULL;
     griddb::ExpirationInfo* expiration;
 
     // Fetch the hash table from a zval input
     arrContainerInfo = Z_ARRVAL_P(&$input);
-    int sizeOfContainerInfo = (int) zend_hash_num_elements(arrContainerInfo);
+    int sizeOfContainerInfo = zend_hash_num_elements(arrContainerInfo);
 
-    if (sizeOfContainerInfo > 0) {
-        zend_string *key;
-        int key_len;
-        long index;
-        for (zend_hash_internal_pointer_reset_ex(arrContainerInfo, &posContainerInfo);
-                (dataContainerInfo = zend_hash_get_current_data_ex(arrContainerInfo, &posContainerInfo)) != NULL;
-                zend_hash_move_forward_ex(arrContainerInfo, &posContainerInfo)) {
-            if (zend_hash_get_current_key_ex(arrContainerInfo, &key, (zend_ulong*)&index, &posContainerInfo) == HASH_KEY_IS_STRING) {
-                name = ZSTR_VAL(key);
-                if (strcmp(name, "name") == 0) {
-                    if (Z_TYPE_P(dataContainerInfo) != IS_STRING) {
-                        SWIG_PHP_Error(E_ERROR, "Expected string as input for name property");
-                    }
-                    $1 = Z_STRVAL_P(dataContainerInfo);
-                }
-                else if (strcmp(name, "columnInfoArray") == 0) {
-                    // Input valid is array only
-                    if (Z_TYPE_P(dataContainerInfo) != IS_ARRAY) {
-                        SWIG_PHP_Error(E_ERROR, "Expected array as input for columnInfo property");
-                    }
-                    // Fetch the hash table from a zval
-                    arrColumnInfoArray = Z_ARRVAL_P(dataContainerInfo);
-                    int sizeOfColumnInfoArray = (int) zend_hash_num_elements(arrColumnInfoArray);
-                    $3 = sizeOfColumnInfoArray;
-                    if ($3 > 0) {
-                        $2 = (GSColumnInfo *) malloc($3*sizeof(GSColumnInfo));
-                        if ($2 == NULL) {
-                            SWIG_PHP_Error(E_ERROR, "Memory allocation error");
-                        }
-                        memset($2, 0x0, $3*sizeof(GSColumnInfo));
+    if (sizeOfContainerInfo == 0) {
+        SWIG_PHP_Error(E_ERROR, "Expect not empty array as input"
+                " for ContainerInfo");
+    }
 
-                        // Get name and type of column
-                        int i = 0;
-                        for (zend_hash_internal_pointer_reset_ex(arrColumnInfoArray, &posColumnInfoArray);
-                                (dataColumnInfoArray = zend_hash_get_current_data_ex(arrColumnInfoArray, &posColumnInfoArray)) != NULL;
-                                zend_hash_move_forward_ex(arrColumnInfoArray, &posColumnInfoArray)) {
-                            if (Z_TYPE_P(dataColumnInfoArray) != IS_ARRAY) {
-                                SWIG_PHP_Error(E_ERROR, "Expected array property as ColumnInfo element");
-                            }
-                            // Fetch the hash table from a zval
-                            arrColumnInfo = Z_ARRVAL_P(dataColumnInfoArray);
-                            int sizeOfColumnInfo = (int) zend_hash_num_elements(arrColumnInfo);
-                            if (sizeOfColumnInfo != 2) {
-                                SWIG_PHP_Error(E_ERROR, "Expected two elements for columnInfo property");
-                            }
+    zend_string *key;
+    int key_len;
+    ulong index;
+    for (zend_hash_internal_pointer_reset_ex(arrContainerInfo, &posContainerInfo);
+            (dataContainerInfo = zend_hash_get_current_data_ex(arrContainerInfo, &posContainerInfo)) != NULL;
+            zend_hash_move_forward_ex(arrContainerInfo, &posContainerInfo)) {
+        if (zend_hash_get_current_key_ex(arrContainerInfo, &key, &index, &posContainerInfo) != HASH_KEY_IS_STRING) {
+            SWIG_PHP_Error(E_ERROR, "Expected string as input for key");
+        }
 
-                            // Get column name
-                            zend_hash_internal_pointer_reset_ex(arrColumnInfo, &posColumnInfo);
-                            if (Z_TYPE_P(columnName = zend_hash_get_current_data_ex(arrColumnInfo, &posColumnInfo)) != IS_STRING) {
-                                SWIG_PHP_Error(E_ERROR, "Expected string as column name");
-                            }
-
-                            $2[i].name =  Z_STRVAL_P(columnName);
-
-                            // Get column type
-                            zend_hash_move_forward_ex(arrColumnInfo, &posColumnInfo);
-                            if (Z_TYPE_P(columnType = zend_hash_get_current_data_ex(arrColumnInfo, &posColumnInfo)) != IS_LONG) {
-                                SWIG_PHP_Error(E_ERROR, "Expected an integer as column type");
-                            }
-                            $2[i].type = Z_LVAL_P(columnType);
-                            i++;
-                        }
-                    }
-                }
-                else if (strcmp(name, "type") == 0) {
-                    if (Z_TYPE_P(dataContainerInfo) != IS_LONG) {
-                        SWIG_PHP_Error(E_ERROR, "Expected integer as input for type property");
-                    }
-                    $4 = Z_LVAL_P(dataContainerInfo);
-                }
-                else if (strcmp(name, "rowKey") == 0) {
-                    if (Z_TYPE_P(dataContainerInfo) == IS_STRING) {
-                        SWIG_PHP_Error(E_ERROR, "Expected boolean as input for rowKey property");
-                    }
-                    $5 = (bool) zval_is_true(dataContainerInfo);
-                }
-                else if (strcmp(name, "expiration") == 0) {
-                    int res = SWIG_ConvertPtr(dataContainerInfo, (void**)&expiration,
-                            $descriptor(griddb::ExpirationInfo*), 0 | 0 );
-                    if (!SWIG_IsOK(res)) {
-                        SWIG_PHP_Error(E_ERROR, "Expected expiration object as input for expiration property");
-                    }
-                    $6 = (griddb::ExpirationInfo *) expiration;
-                } else {
-                    SWIG_PHP_Error(E_ERROR, "Invalid Property");
-                };
+        name = ZSTR_VAL(key);
+        if (strcmp(name, "name") == 0) {
+            if (Z_TYPE_P(dataContainerInfo) != IS_STRING) {
+                SWIG_PHP_Error(E_ERROR, "Expected string as input"
+                        " for name property");
             }
+            $1 = Z_STRVAL_P(dataContainerInfo);
+        } else if (strcmp(name, "columnInfoArray") == 0) {
+            // Input valid is array only
+            if (Z_TYPE_P(dataContainerInfo) != IS_ARRAY) {
+                SWIG_PHP_Error(E_ERROR, "Expected array as input"
+                        " for columnInfo property");
+            }
+            // Fetch the hash table from a zval
+            arrColumnInfoArray = Z_ARRVAL_P(dataContainerInfo);
+            int sizeOfColumnInfoArray = zend_hash_num_elements(arrColumnInfoArray);
+            $3 = sizeOfColumnInfoArray;
+            if ($3 == 0) {
+                SWIG_PHP_Error(E_ERROR, "Expect not empty array");
+            }
+            $2 = new GSColumnInfo[$3];
+            if ($2 == NULL) {
+                SWIG_PHP_Error(E_ERROR, "Memory allocation error");
+            }
+            memset($2, 0x0, $3*sizeof(GSColumnInfo));
+
+            // Get name and type of column
+            int i = 0;
+            for (zend_hash_internal_pointer_reset_ex(arrColumnInfoArray, &posColumnInfoArray);
+                    (dataColumnInfoArray = zend_hash_get_current_data_ex(arrColumnInfoArray, &posColumnInfoArray)) != NULL;
+                    zend_hash_move_forward_ex(arrColumnInfoArray, &posColumnInfoArray)) {
+                if (Z_TYPE_P(dataColumnInfoArray) != IS_ARRAY) {
+                    SWIG_PHP_Error(E_ERROR, "Expected array property as"
+                            " ColumnInfo element");
+                }
+                // Fetch the hash table from a zval
+                arrColumnInfo = Z_ARRVAL_P(dataColumnInfoArray);
+                int sizeOfColumnInfo = zend_hash_num_elements(arrColumnInfo);
+                if (sizeOfColumnInfo != 2) {
+                    SWIG_PHP_Error(E_ERROR, "Expected two elements for"
+                            " columnInfo property");
+                }
+
+                // Get column name
+                zend_hash_internal_pointer_reset_ex(arrColumnInfo,
+                                                    &posColumnInfo);
+                if (Z_TYPE_P(columnName = zend_hash_get_current_data_ex(
+                        arrColumnInfo, &posColumnInfo)) != IS_STRING) {
+                    SWIG_PHP_Error(E_ERROR, "Expected string as column name");
+                }
+
+                $2[i].name = Z_STRVAL_P(columnName);
+
+                // Get column type
+                zend_hash_move_forward_ex(arrColumnInfo, &posColumnInfo);
+                if (Z_TYPE_P(columnType = zend_hash_get_current_data_ex(
+                        arrColumnInfo, &posColumnInfo)) != IS_LONG) {
+                    SWIG_PHP_Error(E_ERROR, "Expected an integer as"
+                            " column type");
+                }
+                $2[i].type = Z_LVAL_P(columnType);
+                i++;
+            }
+        } else if (strcmp(name, "type") == 0) {
+            if (Z_TYPE_P(dataContainerInfo) != IS_LONG) {
+                SWIG_PHP_Error(E_ERROR, "Expected integer as input"
+                        " for type property");
+            }
+            $4 = Z_LVAL_P(dataContainerInfo);
+        } else if (strcmp(name, "rowKey") == 0) {
+            if (Z_TYPE_P(dataContainerInfo) == IS_STRING) {
+                SWIG_PHP_Error(E_ERROR, "Expected boolean as input"
+                        " for rowKey property");
+            }
+            $5 = static_cast<bool> (zval_is_true(dataContainerInfo));
+        } else if (strcmp(name, "expiration") == 0) {
+            int res = SWIG_ConvertPtr(dataContainerInfo,
+                                      reinterpret_cast<void**>(&expiration),
+                                      $descriptor(griddb::ExpirationInfo*),
+                                      0 | 0);
+            if (!SWIG_IsOK(res)) {
+                SWIG_PHP_Error(E_ERROR, "Expected expiration object"
+                        " as input for expiration property");
+            }
+            $6 = (griddb::ExpirationInfo *) expiration;
+        } else {
+            SWIG_PHP_Error(E_ERROR, "Invalid Property");
         }
     }
 }
@@ -333,7 +365,7 @@ static void throwGSException(griddb::GSException* exception) {
         int propsCount, GSContainerType type, bool row_key,
         griddb::ExpirationInfo* expiration) {
     if ($2) {
-        free((void *) $2);
+      delete[] $2;
     }
 }
 
@@ -341,7 +373,8 @@ static void throwGSException(griddb::GSException* exception) {
         fragment = "convertZvalValueToFloat",
         fragment = "convertZvalValueToDouble",
         fragment = "convertDateTimeObjectToGSTimestamp") {
-static bool convertToFieldWithType(GSRow *row, int column, zval* value, GSType type) {
+static bool convertToFieldWithType(GSRow *row, int column,
+                                   zval* value, GSType type) {
     GSResult returnCode;
     bool isSuccess;
 
@@ -374,7 +407,7 @@ static bool convertToFieldWithType(GSRow *row, int column, zval* value, GSType t
                 return false;
             }
             bool boolVal;
-            boolVal = (bool) zval_is_true(value);
+            boolVal = static_cast<bool> (zval_is_true(value));
             returnCode = gsSetRowFieldByBool(row, column, boolVal);
             break;
         }
@@ -437,7 +470,8 @@ static bool convertToFieldWithType(GSRow *row, int column, zval* value, GSType t
         }
         case GS_TYPE_TIMESTAMP: {
             GSTimestamp timestampValue;
-            isSuccess = convertDateTimeObjectToGSTimestamp(value, &timestampValue);
+            isSuccess = convertDateTimeObjectToGSTimestamp(value,
+                                                           &timestampValue);
             if (!isSuccess) {
                 return false;
             }
@@ -454,7 +488,8 @@ static bool convertToFieldWithType(GSRow *row, int column, zval* value, GSType t
             blobVal.data = Z_STRVAL_P(value);
             size = Z_STRLEN_P(value);
             blobVal.size = size;
-            returnCode = gsSetRowFieldByBlob(row, column, (const GSBlob *)&blobVal);
+            returnCode = gsSetRowFieldByBlob(row, column,
+                                             (const GSBlob *)&blobVal);
             break;
         }
         default:
@@ -476,7 +511,8 @@ static bool convertZvalValueToDouble(zval* value, double* doubleValPtr) {
         int64_t intVal;
         intVal = Z_LVAL_P(value);
         *doubleValPtr = intVal;
-        // When input value is integer, it should be between -9007199254740992(-2^53)/9007199254740992(2^53).
+        // When input value is integer, it should be between
+        // -9007199254740992(-2^53)/9007199254740992(2^53).
         return (-9007199254740992 <= intVal && 9007199254740992 >= intVal);
     } else if (Z_TYPE_P(value) == IS_DOUBLE) {
         *doubleValPtr = Z_DVAL_P(value);
@@ -499,7 +535,8 @@ static bool convertZvalValueToFloat(zval* value, float* floatValPtr) {
         int64_t intVal;
         intVal = Z_LVAL_P(value);
         *floatValPtr = intVal;
-        // When input value is integer, it should be between -16777216(-2^24)/16777216(2^24).
+        // When input value is integer, it should be between
+        // -16777216(-2^24)/16777216(2^24).
         return (-16777216 <= intVal && 16777216 >= intVal);
     } else if (Z_TYPE_P(value) == IS_DOUBLE) {
         *floatValPtr = Z_DVAL_P(value);
@@ -512,15 +549,18 @@ static bool convertZvalValueToFloat(zval* value, float* floatValPtr) {
 }
 
 /**
- * Support convert type from object to GSTimestamp : input in target language can be : datetime object
+ * Support convert type from object to GSTimestamp :
+ * Input in target language can be : datetime object
  */
-%fragment("convertDateTimeObjectToGSTimestamp", "header"){
-static bool convertDateTimeObjectToGSTimestamp(zval* datetime, GSTimestamp* timestamp) {
+%fragment("convertDateTimeObjectToGSTimestamp", "header") {
+static bool convertDateTimeObjectToGSTimestamp(zval* datetime,
+                                               GSTimestamp* timestamp) {
     // Check DateTime class exist or not
     zend_class_entry *ce = NULL;
     const char* dateTimeClassName = "DateTime";
 
-    zend_string *zstrClassName = zend_string_init(dateTimeClassName, strlen(dateTimeClassName ), 0);
+    zend_string *zstrClassName = zend_string_init(dateTimeClassName,
+                                                  strlen(dateTimeClassName), 0);
     ce = zend_lookup_class(zstrClassName);
     zend_string_release(zstrClassName);
     if (!ce) {
@@ -544,7 +584,7 @@ static bool convertDateTimeObjectToGSTimestamp(zval* datetime, GSTimestamp* time
     bool isDateTime = zval_is_true(&isDateTimeZval);
     if (!isDateTime) {
         return false;
-    };
+    }
 
     // Convert from datetime to timestamp
     // (1)Get timestamp with seconds
@@ -584,8 +624,10 @@ static bool convertDateTimeObjectToGSTimestamp(zval* datetime, GSTimestamp* time
 
 /**
 * Typemaps for RowSet::update() and Container::put() function
-* The argument "GSRow *row" is not used in the function body, it only for the purpose of typemap matching pattern
-* The actual input data is store in class member and can be get by function getGSRowPtr()
+* The argument "GSRow *row" is not used in the function body,
+* It only for the purpose of typemap matching pattern
+* The actual input data is store in class member and can be get
+* by function getGSRowPtr()
 */
 %typemap(in, fragment = "convertToFieldWithType") (GSRow *row)
         (HashTable *arr, HashPosition pos, zval* data) {
@@ -594,7 +636,7 @@ static bool convertDateTimeObjectToGSTimestamp(zval* datetime, GSTimestamp* time
         SWIG_PHP_Error(E_ERROR, "Expected an array as input");
     }
     arr = Z_ARRVAL_P(&$input);
-    int length = (int) zend_hash_num_elements(arr);
+    int length = zend_hash_num_elements(arr);
     GSRow *tmpRow = arg1->getGSRowPtr();
     int colNum = arg1->getColumnCount();
     GSType* typeList = arg1->getGSTypeList();
@@ -609,22 +651,25 @@ static bool convertDateTimeObjectToGSTimestamp(zval* datetime, GSTimestamp* time
         GSType type = typeList[pos];
         if (!(convertToFieldWithType(tmpRow, pos, data, type))) {
             char gsType[SIZE];
-            sprintf(gsType, "Invalid value for column %d, type should be : %d", pos, type);
+            snprintf(gsType, SIZE, "Invalid value for column %d,"
+                " type should be : %d", pos, type);
             SWIG_PHP_Error(E_ERROR, gsType);
         }
     }
 }
 
 /**
- * Support convert row key Field from zval* in target language to C Object with specific type
+ * Support convert row key Field from zval* in target language to
+ * C Object with specific type
  */
 %fragment("convertToRowKeyFieldWithType", "header") {
-static bool convertToRowKeyFieldWithType(griddb::Field &field, zval* value, GSType type) {
+static bool convertToRowKeyFieldWithType(griddb::Field &field,
+                                         zval* value, GSType type) {
     bool isSuccess;
     field.type = type;
 
     if (Z_TYPE_P(value) == IS_NULL) {
-        //Not support NULL
+        // Not support NULL
         return false;
     }
 
@@ -654,13 +699,14 @@ static bool convertToRowKeyFieldWithType(griddb::Field &field, zval* value, GSTy
             field.value.asLong = Z_LVAL_P(value);
             break;
         case (GS_TYPE_TIMESTAMP):
-            isSuccess = convertDateTimeObjectToGSTimestamp(value, &field.value.asTimestamp);
+            isSuccess = convertDateTimeObjectToGSTimestamp(
+                    value, &field.value.asTimestamp);
             if (!isSuccess) {
                 return false;
             }
             break;
         default:
-            //Not support for now
+            // Not support for now
             return false;
             break;
     }
@@ -692,14 +738,15 @@ static bool convertToRowKeyFieldWithType(griddb::Field &field, zval* value, GSTy
 /**
  * Support convert data from GSRow* row to zval array
  */
-%fragment("getRowFields", "header", fragment = "convertTimestampToDateTimeObject") {
+%fragment("getRowFields", "header",
+          fragment = "convertTimestampToDateTimeObject") {
 static bool getRowFields(GSRow* row, int columnCount,
         GSType* typeList, int* columnError,
         GSType* fieldTypeError, zval* outList) {
     GSResult returnCode;
     bool returnValue = true;
     for (int i = 0; i < columnCount; i++) {
-        //Check NULL value
+        // Check NULL value
         GSBool nullValue;
         returnCode = gsGetRowFieldNull(row, (int32_t) i, &nullValue);
         if (!GS_SUCCEEDED(returnCode)) {
@@ -724,7 +771,8 @@ static bool getRowFields(GSRow* row, int columnCount,
         }
         case GS_TYPE_STRING: {
             GSChar* stringValue;
-            returnCode = gsGetRowFieldAsString(row, (int32_t) i, (const GSChar **)&stringValue);
+            returnCode = gsGetRowFieldAsString(row, (int32_t) i,
+                                               (const GSChar **)&stringValue);
             if (!GS_SUCCEEDED(returnCode)) {
                 break;
             }
@@ -737,7 +785,8 @@ static bool getRowFields(GSRow* row, int columnCount,
             if (!GS_SUCCEEDED(returnCode)) {
                 break;
             }
-            add_index_string(outList, i, (char*)blobValue.data);
+            add_index_string(outList, i,
+                             reinterpret_cast<const char*>(blobValue.data));
             break;
         }
         case GS_TYPE_BOOL: {
@@ -747,7 +796,7 @@ static bool getRowFields(GSRow* row, int columnCount,
             if (!GS_SUCCEEDED(returnCode)) {
                 break;
             }
-            if (boolValue == GS_TRUE){
+            if (boolValue == GS_TRUE) {
                 boolVal = true;
             } else {
                 boolVal = false;
@@ -785,7 +834,8 @@ static bool getRowFields(GSRow* row, int columnCount,
         case GS_TYPE_TIMESTAMP: {
             GSTimestamp timestampValue;
             zval dateTime;
-            returnCode = gsGetRowFieldAsTimestamp(row, (int32_t) i, &timestampValue);
+            returnCode = gsGetRowFieldAsTimestamp(row,
+                                                  (int32_t) i, &timestampValue);
             if (!GS_SUCCEEDED(returnCode)) {
                 break;
             }
@@ -832,7 +882,8 @@ static bool getRowFields(GSRow* row, int columnCount,
  * Support convert data from timestamp to DateTime object in target language
  */
 %fragment("convertTimestampToDateTimeObject", "header") {
-static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateTime) {
+static void convertTimestampToDateTimeObject(GSTimestamp* timestamp,
+                                             zval* dateTime) {
     const int SIZE = 60;
     char timeStr[SIZE];
     zval functionNameZval;
@@ -846,7 +897,7 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
 
     // Get time with microSeconds
     int64_t microSecond = (*timestamp % 1000) * 1000;
-    sprintf(timeStr, "%ld.%06d", second, microSecond);
+    snprintf(timeStr, SIZE, "%ld.%06d", second, microSecond);
 
     ZVAL_STRING(&functionNameZval, functionName);
     ZVAL_STRING(&formatStringZval, formatString);
@@ -863,7 +914,8 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
 
 /*
 * This typemap argument out does not get data from argument "GSRow *rowdata"
-* The argument "GSRow *rowdata" is not used in the function Container::get(), it only for the purpose of typemap matching pattern
+* The argument "GSRow *rowdata" is not used in the function Container::get(),
+* it only for the purpose of typemap matching pattern
 * The actual output data is store in class member and can be get by function getGSRowPtr()
 */
 %typemap(argout, fragment = "getRowFields") (GSRow *rowdata) {
@@ -887,7 +939,8 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
 
         if (returnValue == false) {
             char errorMsg[SIZE];
-            sprintf(errorMsg, "Can't get data for field %d with type %d", errorColumn, errorType);
+            snprintf(errorMsg, SIZE, "Can't get data for field %d with type %d",
+                     errorColumn, errorType);
             SWIG_PHP_Error(E_ERROR, errorMsg);
         }
     }
@@ -897,9 +950,11 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
  * Type map for Rowset::next()
  */
 %typemap(in, numinputs = 0) (GSRowSetType* type, bool* hasNextRow,
-    griddb::QueryAnalysisEntry** queryAnalysis, griddb::AggregationResult** aggResult)
+    griddb::QueryAnalysisEntry** queryAnalysis,
+    griddb::AggregationResult** aggResult)
     (GSRowSetType typeTmp, bool hasNextRowTmp,
-            griddb::QueryAnalysisEntry* queryAnalysisTmp = NULL, griddb::AggregationResult* aggResultTmp = NULL) {
+            griddb::QueryAnalysisEntry* queryAnalysisTmp = NULL,
+            griddb::AggregationResult* aggResultTmp = NULL) {
     $1 = &typeTmp;
     hasNextRowTmp = true;
     $2 = &hasNextRowTmp;
@@ -907,34 +962,37 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
     $4 = &aggResultTmp;
 }
 
-%typemap(argout, fragment = "getRowFields") (GSRowSetType* type, bool* hasNextRow,
-    griddb::QueryAnalysisEntry** queryAnalysis, griddb::AggregationResult** aggResult) {
-
+%typemap(argout, fragment = "getRowFields") (GSRowSetType* type,
+    bool* hasNextRow, griddb::QueryAnalysisEntry** queryAnalysis,
+    griddb::AggregationResult** aggResult) {
     const int SIZE = 60;
+    if (*$2 == false) {
+        RETURN_NULL();
+    }
     switch (*$1) {
         case (GS_ROW_SET_CONTAINER_ROWS): {
             bool returnValue;
             int errorColumn;
-            if (*$2 == false) {
-                RETURN_NULL();
-            } else {
-                GSRow* row = arg1->getGSRowPtr();
-                array_init_size(return_value, arg1->getColumnCount());
-                GSType errorType;
-                returnValue = getRowFields(row, arg1->getColumnCount(),
-                        arg1->getGSTypeList(),
-                        &errorColumn, &errorType, return_value);
-                if (returnValue == false) {
-                    char errorMsg[SIZE];
-                    sprintf(errorMsg, "Can't get data for field %d with type %d", errorColumn, errorType);
-                    SWIG_PHP_Error(E_ERROR, errorMsg);
+
+            GSRow* row = arg1->getGSRowPtr();
+            array_init_size(return_value, arg1->getColumnCount());
+            GSType errorType;
+            returnValue = getRowFields(row, arg1->getColumnCount(),
+                    arg1->getGSTypeList(),
+                    &errorColumn, &errorType, return_value);
+
+            if (returnValue == false) {
+                char errorMsg[SIZE];
+                snprintf(errorMsg, SIZE, "Can't get data for field"
+                    " %d with type %d", errorColumn, errorType);
+                SWIG_PHP_Error(E_ERROR, errorMsg);
                 }
-            }
             break;
         }
         case (GS_ROW_SET_AGGREGATION_RESULT): {
-            SWIG_SetPointerZval(return_value, (void *) (*$4),
-                    $descriptor(griddb::AggregationResult *), SWIG_CAST_NEW_MEMORY);
+            SWIG_SetPointerZval(return_value, reinterpret_cast<void *> (*$4),
+                    $descriptor(griddb::AggregationResult *),
+                    SWIG_CAST_NEW_MEMORY);
 
             break;
         }
@@ -944,7 +1002,7 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
             break;
         }
         default: {
-            SWIG_PHP_Error(E_ERROR, "Invalid type");
+            SWIG_PHP_Error(E_ERROR, "Invalid Rowset type");
             break;
         }
     }
@@ -953,7 +1011,8 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
 /*
 * Typemap for get function in AggregationResult class
 */
-%typemap(in, numinputs = 0) (griddb::Field *agValue) (griddb::Field tmpAgValue){
+%typemap(in, numinputs = 0) (griddb::Field *agValue)
+        (griddb::Field tmpAgValue) {
     $1 = &tmpAgValue;
 }
 
@@ -968,7 +1027,8 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
             break;
         }
         case GS_TYPE_TIMESTAMP:
-            convertTimestampToDateTimeObject(&($1->value.asTimestamp), return_value);
+            convertTimestampToDateTimeObject(&($1->value.asTimestamp),
+                                             return_value);
         default:
             RETURN_NULL();
     }
@@ -978,11 +1038,12 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
 * Typemap for TimestampUtils::get_time_millis: convert DateTime object from
 * target language to timestamp with millisecond in C++ layer
 */
-%typemap(in, fragement = "convertDateTimeObjectToGSTimestamp") (int64_t timestamp){
+%typemap(in, fragement = "convertDateTimeObjectToGSTimestamp")
+        (int64_t timestamp) {
     bool isSuccess;
     GSTimestamp timestampValue;
     isSuccess = convertDateTimeObjectToGSTimestamp(&$input, &timestampValue);
-    if (!isSuccess){
+    if (!isSuccess) {
         SWIG_PHP_Error(E_ERROR, "Expected a DateTime object as input");
     }
     $1 = timestampValue;
@@ -992,60 +1053,67 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
 * Typemap for set attribute ContainerInfo::column_info_list
 */
 %typemap(in, numinputs = 1) (ColumnInfoList*)
-        (HashTable *arrColumnInfoArray, HashPosition posColumnInfoArray, zval *dataColumnInfoArray,
-                HashTable *arrColumnInfo, HashPosition posColumnInfo, zval *dataColumnInfo,
-                zval *columnName, zval *columnType){
+        (HashTable *arrColumnInfoArray, HashPosition posColumnInfoArray,
+            zval *dataColumnInfoArray, HashTable *arrColumnInfo,
+            HashPosition posColumnInfo, zval *dataColumnInfo,
+            zval *columnName, zval *columnType) {
     ColumnInfoList infolist;
     int i = 0;
     GSColumnInfo* containerInfo;
     $1 = &infolist;
 
-    if (Z_TYPE_P(&$input) != IS_ARRAY){
+    if (Z_TYPE_P(&$input) != IS_ARRAY) {
         SWIG_PHP_Error(E_ERROR, "Expected an array as input");
     }
 
     arrColumnInfoArray = Z_ARRVAL_P(&$input);
-    int length = (int) zend_hash_num_elements(arrColumnInfoArray);
+    int length = zend_hash_num_elements(arrColumnInfoArray);
 
-    if (length > 0) {
-        containerInfo = (GSColumnInfo *) malloc(length*sizeof(GSColumnInfo));
-        if (containerInfo == NULL) {
-            SWIG_PHP_Error(E_ERROR, "Memmory allocation error");
+    if (length == 0) {
+        SWIG_PHP_Error(E_ERROR, "Expected not empty array as input");
+    }
+
+    containerInfo = new GSColumnInfo[length];
+    if (containerInfo == NULL) {
+        SWIG_PHP_Error(E_ERROR, "Memmory allocation error");
+    }
+    memset(containerInfo, 0x0, length*sizeof(GSColumnInfo));
+
+    // Set value for property of columnInfoList
+    $1->columnInfo = containerInfo;
+    $1->size = length;
+
+    for (zend_hash_internal_pointer_reset_ex(arrColumnInfoArray, &posColumnInfoArray);
+            (dataColumnInfoArray = zend_hash_get_current_data_ex(arrColumnInfoArray, &posColumnInfoArray)) != NULL;
+            zend_hash_move_forward_ex(arrColumnInfoArray, &posColumnInfoArray)) {
+        // Input valid is array only
+        if (Z_TYPE_P(dataColumnInfoArray) != IS_ARRAY) {
+            SWIG_PHP_Error(E_ERROR, "Expected array property"
+                " as ColumnInfo element");
         }
-        memset(containerInfo, 0x0, length*sizeof(GSColumnInfo));
 
-        // Set value for property of columnInfoList
-        $1->columnInfo = containerInfo;
-        $1->size = length;
-
-        for (zend_hash_internal_pointer_reset_ex(arrColumnInfoArray, &posColumnInfoArray);
-                (dataColumnInfoArray = zend_hash_get_current_data_ex(arrColumnInfoArray, &posColumnInfoArray)) != NULL;
-                zend_hash_move_forward_ex(arrColumnInfoArray, &posColumnInfoArray)) {
-            // Input valid is array only
-            if (Z_TYPE_P(dataColumnInfoArray) != IS_ARRAY) {
-                SWIG_PHP_Error(E_ERROR, "Expected array property as ColumnInfo element");
-            }
-
-            arrColumnInfo = Z_ARRVAL_P(dataColumnInfoArray);
-            int sizeColumn = (int) zend_hash_num_elements(arrColumnInfo);
-            if (sizeColumn != 2) {
-                SWIG_PHP_Error(E_ERROR, "Expected two elements for ColumnInfo property");
-            }
-            // Get column name
-            zend_hash_internal_pointer_reset_ex(arrColumnInfo, &posColumnInfo);
-            if (Z_TYPE_P(columnName = zend_hash_get_current_data_ex(arrColumnInfo, &posColumnInfo)) != IS_STRING) {
-                SWIG_PHP_Error(E_ERROR, "Expected string as column name");
-            }
-            containerInfo[i].name = Z_STRVAL_P(columnName);
-
-            // Get column type
-            zend_hash_move_forward_ex(arrColumnInfo, &posColumnInfo);
-            if (Z_TYPE_P(columnType = zend_hash_get_current_data_ex(arrColumnInfo, &posColumnInfo)) != IS_LONG) {
-                SWIG_PHP_Error(E_ERROR, "Expected an integer as column type");
-            }
-            containerInfo[i].type = Z_LVAL_P(columnType);
-            i++;
+        arrColumnInfo = Z_ARRVAL_P(dataColumnInfoArray);
+        int sizeColumn = zend_hash_num_elements(arrColumnInfo);
+        if (sizeColumn != 2) {
+            SWIG_PHP_Error(E_ERROR, "Expected two elements"
+                " for ColumnInfo property");
         }
+        // Get column name
+        zend_hash_internal_pointer_reset_ex(arrColumnInfo, &posColumnInfo);
+        if (Z_TYPE_P(columnName = zend_hash_get_current_data_ex(
+            arrColumnInfo, &posColumnInfo)) != IS_STRING) {
+            SWIG_PHP_Error(E_ERROR, "Expected string as column name");
+        }
+        containerInfo[i].name = Z_STRVAL_P(columnName);
+
+        // Get column type
+        zend_hash_move_forward_ex(arrColumnInfo, &posColumnInfo);
+        if (Z_TYPE_P(columnType = zend_hash_get_current_data_ex(
+            arrColumnInfo, &posColumnInfo)) != IS_LONG) {
+            SWIG_PHP_Error(E_ERROR, "Expected an integer as column type");
+        }
+        containerInfo[i].type = Z_LVAL_P(columnType);
+        i++;
     }
 }
 
@@ -1054,7 +1122,7 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
  */
 %typemap(freearg) (ColumnInfoList*) {
     if ($1->columnInfo) {
-        free((void*) $1->columnInfo);
+        delete[]($1->columnInfo);
     }
 }
 
@@ -1084,17 +1152,19 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
 /**
 * Typemaps output for PartitionController::get_container_names
 */
-%typemap(in, numinputs = 0) (const GSChar *const ** stringList, size_t *size) (GSChar **nameList, size_t size) {
+%typemap(in, numinputs = 0) (const GSChar *const ** stringList, size_t *size)
+    (GSChar **nameList, size_t size) {
     $1 = &nameList;
     $2 = &size;
 }
 
-%typemap(argout, numinputs = 0) (const GSChar * const ** stringList, size_t *size) {
+%typemap(argout, numinputs = 0) (const GSChar * const ** stringList,
+    size_t *size) {
     GSChar** nameList = *$1;
     size_t size = *$2;
 
     array_init_size(return_value, size);
-    for (int i = 0; i < size; i++){
+    for (int i = 0; i < size; i++) {
         add_next_index_string(return_value, nameList[i]);
     }
 }
