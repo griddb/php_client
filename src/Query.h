@@ -41,7 +41,7 @@ class Query {
         ~Query();
         void close();
         RowSet* fetch(bool for_update = false);
-        void set_fetch_options(int limit = -1, bool partial = false);
+        void set_fetch_options(int limit);
         RowSet* get_row_set();
         GSQuery* gs_ptr();
 

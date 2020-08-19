@@ -61,7 +61,7 @@ namespace griddb {
             freeMemoryContainer();
             throw GSException(mContainer, "Memory allocation error");
         }
-        
+
         mContainerInfo->timeSeriesProperties = NULL;
         mContainerInfo->triggerInfoList = NULL;
         mContainerInfo->dataAffinity = NULL;
@@ -74,8 +74,6 @@ namespace griddb {
     }
 
     Container::~Container() {
-        
-
     // allRelated = FALSE, since all row object is managed by Row class
         close(GS_FALSE);
     }
@@ -124,20 +122,9 @@ namespace griddb {
      * @brief Removes the specified type of index among indexes on the specified Column
      * @param *column_name Column name
      * @param index_type Flag value which shows index classification
-     * @param *name Index name
      */
-    void Container::drop_index(const char* column_name, GSIndexTypeFlags index_type, const char *name) {
-        GSResult ret = GS_RESULT_OK;
-
-        if (name) {
-            GSIndexInfo indexInfo = GS_INDEX_INFO_INITIALIZER;
-            indexInfo.name = name;
-            indexInfo.type = index_type;
-            indexInfo.columnName = column_name;
-            ret = gsDropIndexDetail(mContainer, &indexInfo);
-        } else {
-            ret = gsDropIndex(mContainer, column_name, index_type);
-        }
+    void Container::drop_index(const char* column_name, GSIndexTypeFlags index_type) {
+        GSResult ret = gsDropIndex(mContainer, column_name, index_type);
 
         if (!GS_SUCCEEDED(ret)) {
             throw GSException(mContainer, ret);
@@ -148,20 +135,9 @@ namespace griddb {
      * @brief Creates a specified type of index on the specified Column
      * @param *column_name Column name
      * @param index_type Flag value which shows index classification
-     * @param *name Index name
      */
-    void Container::create_index(const char *column_name, GSIndexTypeFlags index_type, const char *name) {
-        GSResult ret = GS_RESULT_OK;
-
-        if (name){
-            GSIndexInfo indexInfo = GS_INDEX_INFO_INITIALIZER;
-            indexInfo.name = name;
-            indexInfo.type = index_type;
-            indexInfo.columnName = column_name;
-            ret = gsCreateIndexDetail(mContainer, &indexInfo);
-        } else {
-            ret = gsCreateIndex(mContainer, column_name, index_type);
-        }
+    void Container::create_index(const char *column_name, GSIndexTypeFlags index_type) {
+        GSResult ret = gsCreateIndex(mContainer, column_name, index_type);
 
         if (!GS_SUCCEEDED(ret)) {
             throw GSException(mContainer, ret);

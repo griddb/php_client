@@ -100,9 +100,8 @@ namespace griddb {
     /**
      * @brief Set fetch limit option for a result acquisition.
      * @param limit The maximum number of Rows to be fetched.
-     * @param partial The option value for GSFetchOption
      */
-    void Query::set_fetch_options(int limit, bool partial){
+    void Query::set_fetch_options(int limit){
         GSFetchOption fetchOption;
         GSResult ret;
         if (limit >= 0) {
@@ -111,16 +110,6 @@ namespace griddb {
             if (!GS_SUCCEEDED(ret)) {
                 throw GSException(mQuery, ret);
             }
-        }
-        if (partial == true) {
-#if GS_COMPATIBILITY_SUPPORT_4_0
-            fetchOption = GS_FETCH_PARTIAL_EXECUTION;
-            //Need to call gsSetFetchOption as many as the number of options
-            ret = gsSetFetchOption(mQuery, fetchOption, &partial, GS_TYPE_BOOL);
-            if (!GS_SUCCEEDED(ret)) {
-                throw GSException(mQuery, ret);
-            }
-#endif
         }
     }
 }
