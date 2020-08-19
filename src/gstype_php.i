@@ -35,7 +35,7 @@
 
 //Read only attribute Container::type
 %attribute(griddb::Container, int, type, get_type);
-//Read only attribute GSException::is_timeout
+//Read only attribute GSException::isTimeout
 %attribute(griddb::GSException, bool, isTimeout, is_timeout);
 //Read only attribute RowSet::size
 %attribute(griddb::RowSet, int32_t, size, size);
@@ -57,6 +57,10 @@
 %attribute(griddb::ExpirationInfo, GSTimeUnit, unit, get_time_unit, set_time_unit);
 //Read only attribute ExpirationInfo::divisionCount
 %attribute(griddb::ExpirationInfo, int, divisionCount, get_division_count, set_division_count);
+//Read only attribute Store::partitionController
+%attribute(griddb::Store, griddb::PartitionController*, partitionController, partition_info);
+//Read only attribute PartitionController::partitionCount
+%attribute(griddb::PartitionController, int, partitionCount, get_partition_count);
 
 /*
  * Ignore unnecessary functions
@@ -1049,9 +1053,8 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
  * Cleanup argument data for set attribute ContainerInfo::column_info_list
  */
 %typemap(freearg) (ColumnInfoList*) {
-    size_t size = $1->size;
     if ($1->columnInfo) {
-        free($1->columnInfo);
+        free((void*) $1->columnInfo);
     }
 }
 
@@ -1078,3 +1081,20 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp, zval* dateT
     }
 }
 
+/**
+* Typemaps output for PartitionController::get_container_names
+*/
+%typemap(in, numinputs = 0) (const GSChar *const ** stringList, size_t *size) (GSChar **nameList, size_t size) {
+    $1 = &nameList;
+    $2 = &size;
+}
+
+%typemap(argout, numinputs = 0) (const GSChar * const ** stringList, size_t *size) {
+    GSChar** nameList = *$1;
+    size_t size = *$2;
+
+    array_init_size(return_value, size);
+    for (int i = 0; i < size; i++){
+        add_next_index_string(return_value, nameList[i]);
+    }
+}
