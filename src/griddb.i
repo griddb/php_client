@@ -35,9 +35,9 @@
 
 %include <std_except.i>
 
-//Mark these methods below return new object, need to be free by target language
+// Mark these methods below return new object, need to be free by target language
 %feature("new") griddb::Container::query;
-//%feature("new") griddb::ContainerInfo::get_time_series_properties;
+// %feature("new") griddb::ContainerInfo::get_time_series_properties;
 %feature("new") griddb::Query::fetch;
 %feature("new") griddb::Query::get_row_set;
 %feature("new") griddb::RowSet::get_next_query_analysis;

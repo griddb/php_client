@@ -23,25 +23,20 @@
 #include "Field.h"
 #include "gridstore.h"
 
-using namespace std;
-
 namespace griddb {
 
 class AggregationResult {
-
-    GSAggregationResult* mAggResult;
+    GSAggregationResult *mAggResult;
 
     friend class RowSet;
 
-    public:
-        bool timestamp_output_with_float;
-        ~AggregationResult();
-        void close();
-        void get(GSType type, griddb::Field *agValue);
-        AggregationResult(GSAggregationResult* aggResult);
-
+ public:
+    bool timestamp_output_with_float;
+    ~AggregationResult();
+    void close();
+    void get(GSType type, griddb::Field *agValue);
+    explicit AggregationResult(GSAggregationResult *aggResult);
 };
-
 } /* namespace griddb */
 
 #endif /* _AGGREGATIONRESULT_H_ */

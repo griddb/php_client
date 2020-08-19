@@ -20,13 +20,11 @@
 #include <string.h>
 #include "GSException.h"
 
-using namespace std;
-
 namespace griddb {
 
 class Util {
-    public:
-        static void strdup(const GSChar** const to, const GSChar* from);
+ public:
+    static void strdup(const GSChar **const to, const GSChar *from);
 };
 
 }

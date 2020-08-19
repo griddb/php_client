@@ -22,8 +22,9 @@ namespace griddb {
      * @brief Constructor a new Aggregation Result:: Aggregation Result object
      * @param aggResult Stores the result of an aggregation operation
      */
-    AggregationResult::AggregationResult(GSAggregationResult* aggResult) :
-            mAggResult(aggResult), timestamp_output_with_float(false) {
+    AggregationResult::AggregationResult(GSAggregationResult *aggResult) :
+            mAggResult(aggResult),
+            timestamp_output_with_float(false) {
     }
 
     AggregationResult::~AggregationResult() {
@@ -50,22 +51,24 @@ namespace griddb {
         void *value;
         agValue->type = type;
         switch (type) {
-        case GS_TYPE_DOUBLE:
-            value = &agValue->value.asDouble;
-            break;
-        case GS_TYPE_LONG:
-            value = &agValue->value.asLong;
-            break;
-        case GS_TYPE_TIMESTAMP:
-            value = &agValue->value.asTimestamp;
-            break;
-        default:
-            throw GSException(mAggResult, "Not support type from Aggregation result");
-            break;
+            case GS_TYPE_DOUBLE:
+                value = &agValue->value.asDouble;
+                break;
+            case GS_TYPE_LONG:
+                value = &agValue->value.asLong;
+                break;
+            case GS_TYPE_TIMESTAMP:
+                value = &agValue->value.asTimestamp;
+                break;
+            default:
+                throw GSException(mAggResult,
+                                  "Not support type from Aggregation result");
+                break;
         }
         GSBool ret = gsGetAggregationValue(mAggResult, value, type);
         if (ret == GS_FALSE) {
-            throw GSException(mAggResult,
+            throw GSException(
+                    mAggResult,
                     "Value cannot be retrieved from Aggregation result");
         }
     }

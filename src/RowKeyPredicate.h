@@ -17,17 +17,15 @@
 #ifndef _ROWKEYPREDICATE_H_
 #define _ROWKEYPREDICATE_H_
 
-#include <string>
-#include <vector>
 #include <assert.h>
 #include <string.h>
+#include <string>
+#include <vector>
 
 #include "gridstore.h"
 #include "Field.h"
 #include "GSException.h"
 #include "Util.h"
-
-using namespace std;
 
 namespace griddb {
 
@@ -37,21 +35,20 @@ class RowKeyPredicate {
 
     friend class Store;
 
-    public:
-        bool timestamp_output_with_float;
-        ~RowKeyPredicate();
-        void close();
+ public:
+    bool timestamp_output_with_float;
+    ~RowKeyPredicate();
+    void close();
 
-        void get_range(Field* startField, Field* finishField);
-        void set_range(Field* startKey, Field* finishKey);
-        void set_distinct_keys(const Field *keys, size_t keyCount);
-        void get_distinct_keys(Field **keys, size_t* keyCount);
-        GSRowKeyPredicate* gs_ptr();
-        GSType get_key_type();
+    void get_range(Field *startField, Field *finishField);
+    void set_range(Field *startKey, Field *finishKey);
+    void set_distinct_keys(const Field *keys, size_t keyCount);
+    void get_distinct_keys(Field **keys, size_t *keyCount);
+    GSRowKeyPredicate* gs_ptr();
+    GSType get_key_type();
 
-    private:
-        RowKeyPredicate(GSRowKeyPredicate *predicate, GSType type);
-
+ private:
+    RowKeyPredicate(GSRowKeyPredicate *predicate, GSType type);
 };
 
 } /* namespace griddb */

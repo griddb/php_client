@@ -25,20 +25,21 @@ namespace griddb {
 class PartitionController {
     friend class Store;
 
-    private:
-        GSPartitionController *mController;
+ private:
+    GSPartitionController *mController;
 
-    public:
-        ~PartitionController();
-        void close();
-        int32_t get_partition_count();
-        int64_t get_container_count(int32_t partition_index);
-        void get_container_names(int32_t partition_index, int64_t start,
-                const GSChar * const ** stringList, size_t *size, int64_t limit = -1);
-        int32_t get_partition_index_of_container(const GSChar *container_name);
+ public:
+    ~PartitionController();
+    void close();
+    int32_t get_partition_count();
+    int64_t get_container_count(int32_t partition_index);
+    void get_container_names(int32_t partition_index, int64_t start,
+                             const GSChar *const**stringList, size_t *size,
+                             int64_t limit = -1);
+    int32_t get_partition_index_of_container(const GSChar *container_name);
 
-    private:
-        PartitionController(GSPartitionController *controller);
+ private:
+    explicit PartitionController(GSPartitionController *controller);
 };
 
 } /* namespace griddb */

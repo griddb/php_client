@@ -27,7 +27,7 @@ namespace griddb {
     /**
      * Convert from PHP DateTime to GridDB timestamp
      */
-    int64_t TimestampUtils::get_time_millis(int64_t timestamp){
+    int64_t TimestampUtils::get_time_millis(int64_t timestamp) {
         return timestamp;
     }
 

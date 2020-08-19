@@ -26,8 +26,6 @@
 #include "GSException.h"
 #include "Util.h"
 
-using namespace std;
-
 namespace griddb {
 
 /**
@@ -35,25 +33,27 @@ namespace griddb {
  * This class is implemented as singleton.
  */
 class StoreFactory {
-    private:
-        GSGridStoreFactory* mFactory;
+ private:
+    GSGridStoreFactory *mFactory;
 
-    public:
-        ~StoreFactory();
-        void close(GSBool allRelated = GS_FALSE);
-        static StoreFactory* get_instance();
-        Store* get_store(const char* host, int32_t port, const char* cluster_name,
-                const char* database, const char* username, const char* password,
-                const char* notification_member, const char* notification_provider);
-        string get_version();
+ public:
+    ~StoreFactory();
+    void close(GSBool allRelated = GS_FALSE);
+    static StoreFactory* get_instance();
+    Store* get_store(const char *host, int32_t port, const char *cluster_name,
+                     const char *database, const char *username,
+                     const char *password, const char *notification_member,
+                     const char *notification_provider);
+    string get_version();
 
-    private:
-        StoreFactory();
-        void set_property_entry(GSPropertyEntry *prop, const char* name, const char* value);
-        bool check_multicast(const char* address);
-        void set_factory(GSGridStoreFactory* factory);
+ private:
+    StoreFactory();
+    void set_property_entry(GSPropertyEntry *prop, const char *name,
+                            const char *value);
+    bool check_multicast(const char *address);
+    void set_factory(GSGridStoreFactory *factory);
 };
 
-}
+} /* namespace griddb */
 
 #endif

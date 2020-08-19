@@ -1,4 +1,4 @@
- /*
+/*
     Copyright (c) 2017 TOSHIBA Digital Solutions Corporation.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,13 +15,16 @@
 */
 
 #include "Container.h"
-
 #include <stdarg.h>
 
 namespace griddb {
 
-    Container::Container(GSContainer *container, GSContainerInfo* containerInfo) : mContainer(container),
-            mContainerInfo(NULL), mRow(NULL), mTypeList(NULL), timestamp_output_with_float(false) {
+    Container::Container(GSContainer *container, GSContainerInfo *containerInfo) :
+            mContainer(container),
+            mContainerInfo(NULL),
+            mRow(NULL),
+            mTypeList(NULL),
+            timestamp_output_with_float(false) {
         assert(container != NULL);
         assert(containerInfo != NULL);
         GSResult ret = gsCreateRowByContainer(mContainer, &mRow);
@@ -29,12 +32,14 @@ namespace griddb {
             throw GSException(mContainer, ret);
         }
 
-        GSColumnInfo* columnInfoList;
-        //create local mContainerInfo: there is issue from C-API about using share memory that
-        // make GSContainerInfo* pointer error in case : create gsRow, get GSContainerInfo from gsRow, set field of gs Row
+        GSColumnInfo *columnInfoList;
+        // Create local mContainerInfo: there is issue from C-API about using
+        // share memory that make GSContainerInfo* pointer error in case :
+        // create gsRow, get GSContainerInfo from gsRow, set field of gs Row
         try {
             mContainerInfo = new GSContainerInfo();
-            (*mContainerInfo) = (*containerInfo); // this is for set for normal data (int, float, double..)
+            // This is for set for normal data (int, float, double..)
+            (*mContainerInfo) = (*containerInfo);
             mContainerInfo->name = NULL;
             if (containerInfo->name) {
                 Util::strdup(&(mContainerInfo->name), containerInfo->name);
@@ -46,18 +51,21 @@ namespace griddb {
             for (int i = 0; i < containerInfo->columnCount; i++) {
                 columnInfoList[i].type = containerInfo->columnInfoList[i].type;
                 if (containerInfo->columnInfoList[i].name) {
-                    Util::strdup(&(columnInfoList[i].name), containerInfo->columnInfoList[i].name);
+                    Util::strdup(&(columnInfoList[i].name),
+                                 containerInfo->columnInfoList[i].name);
                 } else {
                     columnInfoList[i].name = NULL;
                 }
 
-                columnInfoList[i].indexTypeFlags = containerInfo->columnInfoList[i].indexTypeFlags;
-                columnInfoList[i].options = containerInfo->columnInfoList[i].options;
+                columnInfoList[i].indexTypeFlags =
+                        containerInfo->columnInfoList[i].indexTypeFlags;
+                columnInfoList[i].options = containerInfo->columnInfoList[i]
+                        .options;
             }
 
             mTypeList = new GSType[mContainerInfo->columnCount]();
-        } catch (bad_alloc& ba) {
-            //Memory allocation error
+        } catch (std::bad_alloc &ba) {
+            // Memory allocation error
             freeMemoryContainer();
             throw GSException(mContainer, "Memory allocation error");
         }
@@ -67,21 +75,22 @@ namespace griddb {
         mContainerInfo->dataAffinity = NULL;
 
         if (mTypeList && mContainerInfo->columnInfoList) {
-            for (int i = 0; i < mContainerInfo->columnCount; i++){
+            for (int i = 0; i < mContainerInfo->columnCount; i++) {
                 mTypeList[i] = mContainerInfo->columnInfoList[i].type;
             }
         }
     }
 
     Container::~Container() {
-    // allRelated = FALSE, since all row object is managed by Row class
+        // allRelated = FALSE, since all row object is managed by Row class
         close(GS_FALSE);
     }
 
     void Container::freeMemoryContainer() {
         if (mContainerInfo) {
             for (int i = 0; i < mContainerInfo->columnCount; i++) {
-                if (mContainerInfo->columnInfoList && mContainerInfo->columnInfoList[i].name) {
+                if (mContainerInfo->columnInfoList
+                        && mContainerInfo->columnInfoList[i].name) {
                     delete[] mContainerInfo->columnInfoList[i].name;
                 }
             }
@@ -102,7 +111,8 @@ namespace griddb {
 
     /**
      * @brief Release Container resource
-     * @param allRelated Indicates whether all unclosed resources in the lower resources related to the specified GSContainer will be closed or not
+     * @param allRelated Indicates whether all unclosed resources in the lower
+     * resources related to the specified GSContainer will be closed or not
      */
     void Container::close(GSBool allRelated) {
         if (mRow != NULL) {
@@ -110,7 +120,7 @@ namespace griddb {
             mRow = NULL;
         }
 
-        //Release container and all related resources
+        // Release container and all related resources
         if (mContainer != NULL) {
             gsCloseContainer(&mContainer, allRelated);
             mContainer = NULL;
@@ -123,7 +133,8 @@ namespace griddb {
      * @param *column_name Column name
      * @param index_type Flag value which shows index classification
      */
-    void Container::drop_index(const char* column_name, GSIndexTypeFlags index_type) {
+    void Container::drop_index(const char *column_name,
+                               GSIndexTypeFlags index_type) {
         GSResult ret = gsDropIndex(mContainer, column_name, index_type);
 
         if (!GS_SUCCEEDED(ret)) {
@@ -136,7 +147,8 @@ namespace griddb {
      * @param *column_name Column name
      * @param index_type Flag value which shows index classification
      */
-    void Container::create_index(const char *column_name, GSIndexTypeFlags index_type) {
+    void Container::create_index(const char *column_name,
+                                 GSIndexTypeFlags index_type) {
         GSResult ret = gsCreateIndex(mContainer, column_name, index_type);
 
         if (!GS_SUCCEEDED(ret)) {
@@ -145,7 +157,8 @@ namespace griddb {
     }
 
     /**
-     * @brief Writes the results of earlier updates to a non-volatile storage medium, such as SSD, so as to prevent the data from being lost even if all cluster nodes stop suddenly.
+     * @brief Writes the results of earlier updates to a non-volatile storage
+     * medium, such as SSD, so as to prevent the data from being lost even if all cluster nodes stop suddenly.
      */
     void Container::flush() {
         GSResult ret = gsFlush(mContainer);
@@ -185,7 +198,8 @@ namespace griddb {
     }
 
     /**
-     * @brief Rolls back the result of the current transaction and starts a new transaction in the manual commit mode.
+     * @brief Rolls back the result of the current transaction and starts a
+     * new transaction in the manual commit mode.
      */
     void Container::abort() {
         GSResult ret = gsAbort(mContainer);
@@ -200,7 +214,7 @@ namespace griddb {
      * @param *query TQL statement
      * @return Return a Query object
      */
-    Query* Container::query(const char* query) {
+    Query* Container::query(const char *query) {
         GSQuery *pQuery;
         GSResult ret = gsQuery(mContainer, query, &pQuery);
 
@@ -209,9 +223,9 @@ namespace griddb {
         }
 
         try {
-            Query* queryObj = new Query(pQuery, mContainerInfo, mRow);
+            Query *queryObj = new Query(pQuery, mContainerInfo, mRow);
             return queryObj;
-        } catch(bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             gsCloseQuery(&pQuery);
             throw GSException(mContainer, "Memory allocation error");
         }
@@ -221,9 +235,9 @@ namespace griddb {
      * @brief Set auto commit to true or false.
      * @param enabled Indicates whether container enables auto commit mode or not
      */
-    void Container::set_auto_commit(bool enabled){
+    void Container::set_auto_commit(bool enabled) {
         GSBool gsEnabled;
-        gsEnabled = (enabled == true ? GS_TRUE:GS_FALSE);
+        gsEnabled = (enabled == true ? GS_TRUE : GS_FALSE);
         GSResult ret = gsSetAutoCommit(mContainer, gsEnabled);
         if (!GS_SUCCEEDED(ret)) {
             throw GSException(mContainer, ret);
@@ -246,38 +260,39 @@ namespace griddb {
      * @param *rowdata The Row object to store the contents of target Row to be obtained
      * @return Return bool value to indicate row exist or not
      */
-    GSBool Container::get(Field* keyFields, GSRow *rowdata) {
+    GSBool Container::get(Field *keyFields, GSRow *rowdata) {
         assert(keyFields != NULL);
         GSBool exists;
         GSResult ret;
         void *key = NULL;
         switch (keyFields->type) {
-        case GS_TYPE_STRING:
-            if (mContainerInfo->columnInfoList[0].type != GS_TYPE_STRING) {
-                throw GSException("wrong type of rowKey string");
-            }
-            key = &keyFields->value.asString;
-            break;
-        case GS_TYPE_INTEGER:
-            if (mContainerInfo->columnInfoList[0].type != GS_TYPE_INTEGER) {
-                throw GSException("wrong type of rowKey integer");
-            }
-            key = &keyFields->value.asInteger;
-            break;
-        case GS_TYPE_LONG:
-            if (mContainerInfo->columnInfoList[0].type != GS_TYPE_LONG) {
-                throw GSException("wrong type of rowKey long");
-            }
-            key = &keyFields->value.asLong;
-            break;
-        case GS_TYPE_TIMESTAMP:
-            if (mContainerInfo->columnInfoList[0].type != GS_TYPE_TIMESTAMP) {
-                throw GSException("wrong type of rowKey timestamp");
-            }
-            key = &keyFields->value.asTimestamp;
-            break;
-        default:
-            throw GSException("wrong type of rowKey field");
+            case GS_TYPE_STRING:
+                if (mContainerInfo->columnInfoList[0].type != GS_TYPE_STRING) {
+                    throw GSException("wrong type of rowKey string");
+                }
+                key = &keyFields->value.asString;
+                break;
+            case GS_TYPE_INTEGER:
+                if (mContainerInfo->columnInfoList[0].type != GS_TYPE_INTEGER) {
+                    throw GSException("wrong type of rowKey integer");
+                }
+                key = &keyFields->value.asInteger;
+                break;
+            case GS_TYPE_LONG:
+                if (mContainerInfo->columnInfoList[0].type != GS_TYPE_LONG) {
+                    throw GSException("wrong type of rowKey long");
+                }
+                key = &keyFields->value.asLong;
+                break;
+            case GS_TYPE_TIMESTAMP:
+                if (mContainerInfo->columnInfoList[0].type
+                        != GS_TYPE_TIMESTAMP) {
+                    throw GSException("wrong type of rowKey timestamp");
+                }
+                key = &keyFields->value.asTimestamp;
+                break;
+            default:
+                throw GSException("wrong type of rowKey field");
         }
 
         ret = gsGetRow(mContainer, key, mRow, &exists);
@@ -293,49 +308,53 @@ namespace griddb {
      * @param *keyFields The variable to store the target Row key
      * @return Return bool value to indicate row exist or not
      */
-    bool Container::remove(Field* keyFields) {
+    bool Container::remove(Field *keyFields) {
         assert(keyFields != NULL);
         GSBool exists = GS_FALSE;
         GSResult ret;
 
-        if (keyFields->type == GS_TYPE_NULL) {
-            ret = gsDeleteRow(mContainer, NULL, &exists);
-        } else {
-            switch (keyFields->type) {
+        switch (keyFields->type) {
+            case GS_TYPE_NULL:
+                ret = gsDeleteRow(mContainer, NULL, &exists);
+                break;
             case GS_TYPE_STRING:
                 if (mContainerInfo->columnInfoList[0].type != GS_TYPE_STRING) {
                     throw GSException("wrong type of rowKey string");
                 }
-                ret = gsDeleteRow(mContainer, &keyFields->value.asString, &exists);
+                ret = gsDeleteRow(mContainer, &keyFields->value.asString,
+                                  &exists);
                 break;
             case GS_TYPE_INTEGER:
                 if (mContainerInfo->columnInfoList[0].type != GS_TYPE_INTEGER) {
                     throw GSException("wrong type of rowKey integer");
                 }
-                ret = gsDeleteRow(mContainer, &keyFields->value.asInteger, &exists);
+                ret = gsDeleteRow(mContainer, &keyFields->value.asInteger,
+                                  &exists);
                 break;
             case GS_TYPE_LONG:
                 if (mContainerInfo->columnInfoList[0].type != GS_TYPE_LONG) {
                     throw GSException("wrong type of rowKey long");
                 }
-                ret = gsDeleteRow(mContainer, &keyFields->value.asLong, &exists);
+                ret = gsDeleteRow(mContainer, &keyFields->value.asLong,
+                                  &exists);
                 break;
             case GS_TYPE_TIMESTAMP:
-                if (mContainerInfo->columnInfoList[0].type != GS_TYPE_TIMESTAMP) {
+                if (mContainerInfo->columnInfoList[0].type
+                        != GS_TYPE_TIMESTAMP) {
                     throw GSException("wrong type of rowKey timestamp");
                 }
-                ret = gsDeleteRow(mContainer, &keyFields->value.asTimestamp, &exists);
+                ret = gsDeleteRow(mContainer, &keyFields->value.asTimestamp,
+                                  &exists);
                 break;
             default:
                 throw GSException("wrong type of rowKey field");
-            }
         }
 
         if (!GS_SUCCEEDED(ret)) {
             throw GSException(mContainer, ret);
         }
 
-        return (bool) exists;
+        return static_cast<bool>(exists);
     }
 
     /**
@@ -343,12 +362,12 @@ namespace griddb {
      * @param **listRowdata The array of row to be put to data base
      * @param rowCount The number of row to be put to database
      */
-    void Container::multi_put(GSRow** listRowdata, int rowCount) {
+    void Container::multi_put(GSRow **listRowdata, int rowCount) {
         GSResult ret;
         GSBool bExists;
-        //data for each container
-        ret = gsPutMultipleRows(mContainer, (const void * const *) listRowdata,
-                rowCount, &bExists);
+        // Data for each container
+        ret = gsPutMultipleRows(mContainer, (const void* const*) listRowdata,
+                                rowCount, &bExists);
         if (!GS_SUCCEEDED(ret)) {
             throw GSException(mContainer, ret);
         }
@@ -358,7 +377,7 @@ namespace griddb {
      * @brief Get GSContainer of Container object to support Store::multi_put
      * @return Return a pointer which store GSContainer of container
      */
-    GSContainer* Container::getGSContainerPtr(){
+    GSContainer* Container::getGSContainerPtr() {
         return mContainer;
     }
 
@@ -366,7 +385,7 @@ namespace griddb {
      * @brief Get GSType of Container object to support put row
      * @return Return a pointer which store type the list of column of row in container
      */
-    GSType* Container::getGSTypeList(){
+    GSType* Container::getGSTypeList() {
         return mTypeList;
     }
 
@@ -374,7 +393,7 @@ namespace griddb {
      * @brief Get GSRow of Container object to support put row
      * @return Return a pointer which store GSRow of container
      */
-    GSRow* Container::getGSRowPtr(){
+    GSRow* Container::getGSRowPtr() {
         return mRow;
     }
 
@@ -382,7 +401,7 @@ namespace griddb {
      * @brief Get number of column of row in container
      * @return Return number of column of row in container
      */
-    int Container::getColumnCount(){
+    int Container::getColumnCount() {
         return mContainerInfo->columnCount;
     }
-}
+} /* namespace griddb */

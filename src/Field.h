@@ -17,23 +17,20 @@
 #ifndef _FIELD_H_
 #define _FIELD_H_
 
-#include <iostream>
 #include <string.h>
+#include <iostream>
 
 #include "gridstore.h"
-
-using namespace std;
 
 namespace griddb {
 
 class Field {
-    public:
-        GSType type;
-        GSValue value;
-        Field();
-        ~Field();
+ public:
+    GSType type;
+    GSValue value;
+    Field();
+    ~Field();
 };
-
-}
+} /* namespace griddb */
 
 #endif /* _FIELD_H_ */

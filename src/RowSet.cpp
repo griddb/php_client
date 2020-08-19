@@ -24,9 +24,13 @@ namespace griddb {
      * @param *containerInfo A pointer holding the information about a specific GSContainer
      * @param *gsRow A pointer holding the information about a row related to a specific GSContainer
      */
-    RowSet::RowSet(GSRowSet *rowSet, GSContainerInfo *containerInfo, GSRow *gsRow) :
-        mRowSet(rowSet), mContainerInfo(containerInfo), mRow(gsRow),
-        timestamp_output_with_float(false), typeList(NULL) {
+    RowSet::RowSet(GSRowSet *rowSet, GSContainerInfo *containerInfo,
+                   GSRow *gsRow) :
+            mRowSet(rowSet),
+            mContainerInfo(containerInfo),
+            mRow(gsRow),
+            timestamp_output_with_float(false),
+            typeList(NULL) {
         if (mRowSet != NULL) {
             mType = gsGetRowSetType(mRowSet);
         } else {
@@ -41,13 +45,13 @@ namespace griddb {
     bool RowSet::has_next() {
         GSRowSetType type;
         type = this->type();
-        switch(type) {
-        case (GS_ROW_SET_CONTAINER_ROWS):
-        case (GS_ROW_SET_AGGREGATION_RESULT):
-        case (GS_ROW_SET_QUERY_ANALYSIS):
-            return (bool) gsHasNextRow(mRowSet);
-        default:
-            return false;
+        switch (type) {
+            case (GS_ROW_SET_CONTAINER_ROWS):
+            case (GS_ROW_SET_AGGREGATION_RESULT):
+            case (GS_ROW_SET_QUERY_ANALYSIS):
+                return static_cast<bool>(gsHasNextRow(mRowSet));
+            default:
+                return false;
         }
     }
 
@@ -72,7 +76,7 @@ namespace griddb {
      * @brief Update current row from RowSet
      * @param *row A Row object representing the content of a Row to be put to database
      */
-    void RowSet::update(GSRow* row) {
+    void RowSet::update(GSRow *row) {
         GSResult ret = gsUpdateCurrentRow(mRowSet, mRow);
 
         if (!GS_SUCCEEDED(ret)) {
@@ -84,7 +88,7 @@ namespace griddb {
      * @brief Get next row data.
      * @param *hasNextRow Indicate whether there is any row in RowSet or not
      */
-    void RowSet::next_row(bool* hasNextRow) {
+    void RowSet::next_row(bool *hasNextRow) {
         *hasNextRow = this->has_next();
         if (*hasNextRow) {
             GSResult ret = gsGetNextRow(mRowSet, mRow);
@@ -101,27 +105,28 @@ namespace griddb {
      * @param **queryAnalysis Represents one of information entries composing a query plan and the results of analyzing a query operation.
      * @param **aggResult Stores the result of an aggregation operation.
      */
-    void RowSet::next(GSRowSetType* type, bool* hasNextRow,
-            QueryAnalysisEntry** queryAnalysis, AggregationResult** aggResult){
+    void RowSet::next(GSRowSetType *type, bool *hasNextRow,
+                      QueryAnalysisEntry **queryAnalysis,
+                      AggregationResult **aggResult) {
         assert(type != NULL);
         assert(hasNextRow != NULL);
         assert(queryAnalysis != NULL);
         assert(aggResult != NULL);
         *type = this->type();
-        switch(*type) {
-        case (GS_ROW_SET_CONTAINER_ROWS):
-            this->next_row(hasNextRow);
-            break;
-        case (GS_ROW_SET_AGGREGATION_RESULT):
-            *hasNextRow = this->has_next();
-            *aggResult = this->get_next_aggregation();
-            break;
-        case (GS_ROW_SET_QUERY_ANALYSIS):
-            *queryAnalysis = this->get_next_query_analysis();
-            *hasNextRow = true;
-            break;
-        default:
-            throw GSException(mRowSet, "type for rowset is not correct");
+        switch (*type) {
+            case (GS_ROW_SET_CONTAINER_ROWS):
+                this->next_row(hasNextRow);
+                break;
+            case (GS_ROW_SET_AGGREGATION_RESULT):
+                *hasNextRow = this->has_next();
+                *aggResult = this->get_next_aggregation();
+                break;
+            case (GS_ROW_SET_QUERY_ANALYSIS):
+                *queryAnalysis = this->get_next_query_analysis();
+                *hasNextRow = true;
+                break;
+            default:
+                throw GSException(mRowSet, "type for rowset is not correct");
         }
     }
 
@@ -148,7 +153,7 @@ namespace griddb {
      * @return A pointer Stores the result of an aggregation operation.
      */
     AggregationResult* RowSet::get_next_aggregation() {
-        GSAggregationResult* pAggResult;
+        GSAggregationResult *pAggResult;
 
         GSResult ret = gsGetNextAggregation(mRowSet, &pAggResult);
         if (!GS_SUCCEEDED(ret)) {
@@ -156,9 +161,9 @@ namespace griddb {
         }
 
         try {
-            AggregationResult* aggResult = new AggregationResult(pAggResult);
+            AggregationResult *aggResult = new AggregationResult(pAggResult);
             return aggResult;
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             gsCloseAggregationResult(&pAggResult);
             throw GSException(mRowSet, "Memory allocation error");
         }
@@ -168,7 +173,7 @@ namespace griddb {
      * @brief Get current row type.
      * @return The type of content that can be extracted from GSRowSet.
      */
-    GSRowSetType RowSet::type(){
+    GSRowSetType RowSet::type() {
         return mType;
     }
 
@@ -176,8 +181,9 @@ namespace griddb {
      * @brief Get next query analysis
      * @return Represents one of information entries composing a query plan and the results of analyzing a query operation.
      */
-    QueryAnalysisEntry* RowSet::get_next_query_analysis(){
-        GSQueryAnalysisEntry gsQueryAnalysis = GS_QUERY_ANALYSIS_ENTRY_INITIALIZER;
+    QueryAnalysisEntry* RowSet::get_next_query_analysis() {
+        GSQueryAnalysisEntry gsQueryAnalysis =
+        GS_QUERY_ANALYSIS_ENTRY_INITIALIZER;
         GSResult ret;
         ret = gsGetNextQueryAnalysis(mRowSet, &gsQueryAnalysis);
         if (!GS_SUCCEEDED(ret)) {
@@ -185,9 +191,10 @@ namespace griddb {
         }
 
         try {
-            QueryAnalysisEntry* queryAnalysis = new QueryAnalysisEntry(&gsQueryAnalysis);
+            QueryAnalysisEntry *queryAnalysis = new QueryAnalysisEntry(
+                    &gsQueryAnalysis);
             return queryAnalysis;
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             throw GSException(mRowSet, "Memory allocation error");
         }
     }
@@ -197,26 +204,27 @@ namespace griddb {
      * @param ***listName List name of column
      * @param *num Number of column
      */
-    void RowSet::get_column_names(char*** listName, int* num){
+    void RowSet::get_column_names(char ***listName, int *num) {
         assert(listName != NULL);
         assert(num != NULL);
-        if (!mContainerInfo){
+        if (!mContainerInfo) {
             return;
         }
 
-        //Memory will be free from typemap
+        // Memory will be free from typemap
         try {
             (*listName) = new char*[mContainerInfo->columnCount]();
             *num = mContainerInfo->columnCount;
-            for (int i = 0; i < mContainerInfo->columnCount; i++){
+            for (int i = 0; i < mContainerInfo->columnCount; i++) {
                 if (mContainerInfo->columnInfoList[i].name) {
-                    Util::strdup((const GSChar**)(&((*listName)[i])), mContainerInfo->columnInfoList[i].name);
+                    Util::strdup((const GSChar**) (&((*listName)[i])),
+                                 mContainerInfo->columnInfoList[i].name);
                 } else {
                     (*listName)[i] = NULL;
                 }
             }
-        } catch (bad_alloc& ba) {
-            for (int i = 0; i < mContainerInfo->columnCount; i++){
+        } catch (std::bad_alloc &ba) {
+            for (int i = 0; i < mContainerInfo->columnCount; i++) {
                 if ((*listName)[i]) {
                     delete[] (*listName)[i];
                 }
@@ -232,15 +240,15 @@ namespace griddb {
      * @brief Get list type of column in row
      * @return A list type of column in row
      */
-    GSType* RowSet::getGSTypeList(){
+    GSType* RowSet::getGSTypeList() {
         if (typeList == NULL) {
             try {
                 typeList = new GSType[mContainerInfo->columnCount]();
-            } catch (bad_alloc& ba) {
+            } catch (std::bad_alloc &ba) {
                 throw GSException(mRowSet, "Memory allocation error");
             }
-            
-            for (int i = 0; i < mContainerInfo->columnCount; i++){
+
+            for (int i = 0; i < mContainerInfo->columnCount; i++) {
                 typeList[i] = mContainerInfo->columnInfoList[i].type;
             }
         }
@@ -251,7 +259,7 @@ namespace griddb {
      * @brief Get number of column in row
      * @return Number of column in row
      */
-    int RowSet::getColumnCount(){
+    int RowSet::getColumnCount() {
         return mContainerInfo->columnCount;
     }
 
@@ -259,8 +267,8 @@ namespace griddb {
      * @brief Get row data in RowSet object
      * @return A pointer stores row data in RowSet object
      */
-    GSRow* RowSet::getGSRowPtr(){
+    GSRow* RowSet::getGSRowPtr() {
         return mRow;
     }
 
-}
+} /* namespace griddb */

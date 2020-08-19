@@ -22,7 +22,9 @@ namespace griddb {
      * @brief Constructor a new TimeSeriesProperties::TimeSeriesProperties object
      * @param *timeSeriesProps Represents the information about optional configuration settings used for newly creating or updating a TimeSeries
      */
-    TimeSeriesProperties::TimeSeriesProperties(const GSTimeSeriesProperties* timeSeriesProps) : mTsProps(*timeSeriesProps) {
+    TimeSeriesProperties::TimeSeriesProperties(
+            const GSTimeSeriesProperties *timeSeriesProps) :
+            mTsProps(*timeSeriesProps) {
     }
 
     /**
@@ -31,9 +33,11 @@ namespace griddb {
      * @param timeUnit The unit of elapsed time referenced for the expiration date of a Row
      * @param ExpirationDivisionCount The division number for the validity period as the number of expired Row data units to be released
      */
-    TimeSeriesProperties::TimeSeriesProperties(int32_t elapsedTime, GSTimeUnit timeUnit,
-            int32_t ExpirationDivisionCount) : mTsProps{elapsedTime, timeUnit, -1,
-            timeUnit, GS_COMPRESSION_NO, 0, NULL, ExpirationDivisionCount} {
+    TimeSeriesProperties::TimeSeriesProperties(int32_t elapsedTime,
+                                               GSTimeUnit timeUnit,
+                                               int32_t ExpirationDivisionCount) :
+            mTsProps { elapsedTime, timeUnit, -1, timeUnit, GS_COMPRESSION_NO,
+                    0, NULL, ExpirationDivisionCount } {
     }
 
     TimeSeriesProperties::~TimeSeriesProperties() {
@@ -44,7 +48,8 @@ namespace griddb {
      * @param elapsedTime The elapsed time period of a Row to be used as the basis of the validity period
      * @param timeUnit The unit of elapsed time referenced for the expiration date of a Row
      */
-    void TimeSeriesProperties::set_row_expiration_time(int elapsedTime, GSTimeUnit timeUnit) {
+    void TimeSeriesProperties::set_row_expiration_time(int elapsedTime,
+                                                       GSTimeUnit timeUnit) {
         mTsProps.rowExpirationTime = elapsedTime;
         mTsProps.rowExpirationTimeUnit = timeUnit;
     }

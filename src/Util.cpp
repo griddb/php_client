@@ -23,9 +23,9 @@ namespace griddb {
      * @param **to A pointer variable that refers to new string data
      * @param *from A pointer stores source string data
      */
-    void Util::strdup(const GSChar** const to, const GSChar* from) {
-        GSChar* temp = new char[strlen(from) + 1]();
-        strcpy(temp, from);
+    void Util::strdup(const GSChar **const to, const GSChar *from) {
+        GSChar *temp = new char[strlen(from) + 1]();
+        strncpy(temp, from, strlen(from));
         *to = temp;
     }
-}
+} /* namespace griddb */

@@ -91,7 +91,6 @@ enum GSIndexTypeFlagTag {
 #endif
 
 enum GSFetchOptionTag {
-
     GS_FETCH_LIMIT,
 
 #if GS_INTERNAL_DEFINITION_VISIBLE
@@ -104,7 +103,6 @@ enum GSFetchOptionTag {
 
 #if !defined(SWIGGO)
 enum GSTimeUnitTag {
-
     GS_TIME_UNIT_YEAR,
 
     GS_TIME_UNIT_MONTH,
@@ -122,13 +120,11 @@ enum GSTimeUnitTag {
 #endif
 
 enum GSTypeOptionTag {
-
     GS_TYPE_OPTION_KEY = 1 << 0,
 
     GS_TYPE_OPTION_NULLABLE = 1 << 1,
 
     GS_TYPE_OPTION_NOT_NULL = 1 << 2,
-
 };
 
 typedef int32_t GSTypeOption;

@@ -23,7 +23,7 @@ namespace griddb {
      * @param *controller A pointer for acquiring and processing the partition status
      */
     PartitionController::PartitionController(GSPartitionController *controller) :
-        mController(controller) {
+            mController(controller) {
     }
 
     /**
@@ -65,7 +65,8 @@ namespace griddb {
      */
     int64_t PartitionController::get_container_count(int32_t partition_index) {
         int64_t value;
-        GSResult ret = gsGetPartitionContainerCount(mController, partition_index, &value);
+        GSResult ret = gsGetPartitionContainerCount(mController,
+                                                    partition_index, &value);
 
         // Check ret, if error, throw exception
         if (!GS_SUCCEEDED(ret)) {
@@ -82,15 +83,18 @@ namespace griddb {
      * @param *size The pointer to a variable to store the number of array elements of the Container name list
      * @param limit The upper limit of the number of cases acquired
      */
-    void PartitionController::get_container_names(int32_t partition_index, int64_t start,
-            const GSChar * const ** stringList, size_t *size, int64_t limit) {
-        int64_t* limitPtr;
+    void PartitionController::get_container_names(
+            int32_t partition_index, int64_t start,
+            const GSChar *const**stringList, size_t *size, int64_t limit) {
+        int64_t *limitPtr;
         if (limit >= 0) {
             limitPtr = &limit;
         } else {
             limitPtr = NULL;
         }
-        GSResult ret = gsGetPartitionContainerNames(mController, partition_index, start, limitPtr, stringList, size);
+        GSResult ret = gsGetPartitionContainerNames(mController,
+                                                    partition_index, start,
+                                                    limitPtr, stringList, size);
 
         if (!GS_SUCCEEDED(ret)) {
             throw GSException(mController, ret);
@@ -102,9 +106,11 @@ namespace griddb {
      * @param *container_name Container name
      * @return The partition index
      */
-    int32_t PartitionController::get_partition_index_of_container(const GSChar* container_name) {
+    int32_t PartitionController::get_partition_index_of_container(
+            const GSChar *container_name) {
         int32_t value;
-        GSResult ret = gsGetPartitionIndexOfContainer(mController, container_name, &value);
+        GSResult ret = gsGetPartitionIndexOfContainer(mController,
+                                                      container_name, &value);
 
         // Check ret, if error, throw exception
         if (!GS_SUCCEEDED(ret)) {

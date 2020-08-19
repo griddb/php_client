@@ -17,11 +17,11 @@
 #ifndef _ROWSET_H_
 #define _ROWSET_H_
 
-#include <memory>
-#include <string>
 #include <stdio.h>
 #include <time.h>
 #include <assert.h>
+#include <string>
+#include <memory>
 
 #include "gridstore.h"
 #include "Field.h"
@@ -29,8 +29,6 @@
 #include "QueryAnalysisEntry.h"
 #include "GSException.h"
 #include "Util.h"
-
-using namespace std;
 
 namespace griddb {
 
@@ -41,37 +39,37 @@ class RowSet {
     GSRowSet *mRowSet;
     GSContainerInfo *mContainerInfo;
     GSRow *mRow;
-    GSType* typeList;
+    GSType *typeList;
 
     friend class Query;
 
     GSRowSetType mType;
 
-    public:
-        bool timestamp_output_with_float;
-        ~RowSet();
-        void close();
-        int32_t size();
-        // Iterator
-        bool has_next();
-        void next(GSRowSetType* type, bool* hasNextRow,
-                QueryAnalysisEntry** queryAnalysis, AggregationResult** aggResult);
-        void update(GSRow* row);
-        void remove();
-        GSRowSetType type();
-        void get_column_names(char*** listName, int* num);
-        QueryAnalysisEntry* get_next_query_analysis();
-        AggregationResult* get_next_aggregation();
-        void next_row(bool* hasNextRow);
-        GSType* getGSTypeList();
-        int getColumnCount();
+ public:
+    bool timestamp_output_with_float;
+    ~RowSet();
+    void close();
+    int32_t size();
+    // Iterator
+    bool has_next();
+    void next(GSRowSetType *type, bool *hasNextRow,
+              QueryAnalysisEntry **queryAnalysis,
+              AggregationResult **aggResult);
+    void update(GSRow *row);
+    void remove();
+    GSRowSetType type();
+    void get_column_names(char ***listName, int *num);
+    QueryAnalysisEntry* get_next_query_analysis();
+    AggregationResult* get_next_aggregation();
+    void next_row(bool *hasNextRow);
+    GSType* getGSTypeList();
+    int getColumnCount();
 
-        GSRow* getGSRowPtr();
+    GSRow* getGSRowPtr();
 
-    private:
-        RowSet(GSRowSet *rowSet, GSContainerInfo *containerInfo, GSRow *mRow);
+ private:
+    RowSet(GSRowSet *rowSet, GSContainerInfo *containerInfo, GSRow *mRow);
 };
-
-}
+} /* namespace griddb */
 
 #endif /* _ROWSET_H_ */

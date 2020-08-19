@@ -24,44 +24,43 @@
 #include "GSException.h"
 #include "Util.h"
 
-using namespace std;
-
 namespace griddb {
 
 class Container {
-
-    GSContainerInfo* mContainerInfo;
+    GSContainerInfo *mContainerInfo;
     GSContainer *mContainer;
 
     friend class Store;
 
-    GSRow* mRow;
-    GSType* mTypeList;
+    GSRow *mRow;
+    GSType *mTypeList;
 
-    public:
-        bool timestamp_output_with_float;
-        ~Container();
-        void close(GSBool allRelated = GS_FALSE);
-        GSContainerType get_type();
-        void create_index(const char* column_name, GSIndexTypeFlags index_type = GS_INDEX_FLAG_DEFAULT);
-        void drop_index(const char* column_name, GSIndexTypeFlags index_type = GS_INDEX_FLAG_DEFAULT);
-        bool put(GSRow *row);
-        Query* query(const char *query);
-        void abort();
-        void flush();
-        void set_auto_commit(bool enabled);
-        void commit();
-        GSBool get(Field* keyFields, GSRow *rowdata);
-        bool remove(Field* keyFields);
-        void multi_put(GSRow** listRowdata, int rowCount);
-        GSContainer* getGSContainerPtr();
-        GSType* getGSTypeList();
-        int getColumnCount();
-        GSRow* getGSRowPtr();
+ public:
+    bool timestamp_output_with_float;
+    ~Container();
+    void close(GSBool allRelated = GS_FALSE);
+    GSContainerType get_type();
+    void create_index(const char *column_name, GSIndexTypeFlags index_type =
+                              GS_INDEX_FLAG_DEFAULT);
+    void drop_index(const char *column_name, GSIndexTypeFlags index_type =
+                            GS_INDEX_FLAG_DEFAULT);
+    bool put(GSRow *row);
+    Query* query(const char *query);
+    void abort();
+    void flush();
+    void set_auto_commit(bool enabled);
+    void commit();
+    GSBool get(Field *keyFields, GSRow *rowdata);
+    bool remove(Field *keyFields);
+    void multi_put(GSRow **listRowdata, int rowCount);
+    GSContainer* getGSContainerPtr();
+    GSType* getGSTypeList();
+    int getColumnCount();
+    GSRow* getGSRowPtr();
 
-    private:
-        Container(GSContainer *container, GSContainerInfo* containerInfo);
-        void freeMemoryContainer();
+ private:
+    Container(GSContainer *container, GSContainerInfo *containerInfo);
+    void freeMemoryContainer();
 };
 
 } /* namespace griddb */

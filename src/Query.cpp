@@ -24,8 +24,10 @@ namespace griddb {
      * @param *containerInfo A pointer holding the information about a specific GSContainer
      * @param *gsRow A pointer holding the information about a row related to a specific GSContainer
      */
-    Query::Query(GSQuery *query, GSContainerInfo *containerInfo, GSRow *gsRow) : mQuery(query),
-            mContainerInfo(containerInfo), mRow(gsRow) {
+    Query::Query(GSQuery *query, GSContainerInfo *containerInfo, GSRow *gsRow) :
+            mQuery(query),
+            mContainerInfo(containerInfo),
+            mRow(gsRow) {
     }
 
     Query::~Query() {
@@ -50,7 +52,7 @@ namespace griddb {
     RowSet* Query::fetch(bool for_update) {
         GSRowSet *gsRowSet;
         // Call method from C-Api.
-        GSBool gsForUpdate = (for_update == true ? GS_TRUE:GS_FALSE);
+        GSBool gsForUpdate = (for_update == true ? GS_TRUE : GS_FALSE);
         GSResult ret = gsFetch(mQuery, gsForUpdate, &gsRowSet);
 
         // Check ret, if error, throw exception
@@ -59,9 +61,9 @@ namespace griddb {
         }
 
         try {
-            RowSet* rowset = new RowSet(gsRowSet, mContainerInfo, mRow);
+            RowSet *rowset = new RowSet(gsRowSet, mContainerInfo, mRow);
             return rowset;
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             gsCloseRowSet(&gsRowSet);
             throw GSException(mQuery, "Memory allocation error");
         }
@@ -81,9 +83,9 @@ namespace griddb {
         }
 
         try {
-            RowSet* rowset = new RowSet(gsRowSet, mContainerInfo, mRow);
+            RowSet *rowset = new RowSet(gsRowSet, mContainerInfo, mRow);
             return rowset;
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             gsCloseRowSet(&gsRowSet);
             throw GSException(mQuery, "Memory allocation error");
         }
@@ -101,15 +103,16 @@ namespace griddb {
      * @brief Set fetch limit option for a result acquisition.
      * @param limit The maximum number of Rows to be fetched.
      */
-    void Query::set_fetch_options(int limit){
+    void Query::set_fetch_options(int limit) {
         GSFetchOption fetchOption;
         GSResult ret;
         if (limit >= 0) {
             fetchOption = GS_FETCH_LIMIT;
-            ret = gsSetFetchOption(mQuery, fetchOption, &limit, GS_TYPE_INTEGER);
+            ret = gsSetFetchOption(mQuery, fetchOption, &limit,
+                                   GS_TYPE_INTEGER);
             if (!GS_SUCCEEDED(ret)) {
                 throw GSException(mQuery, ret);
             }
         }
     }
-}
+} /* namespace griddb */

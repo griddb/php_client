@@ -24,23 +24,20 @@
 #include "GSException.h"
 #include "Util.h"
 
-using namespace std;
-
 namespace griddb {
 
 class QueryAnalysisEntry {
-    private:
-        GSQueryAnalysisEntry* mQueryAnalysis;
-        void freeMemory();
+ private:
+    GSQueryAnalysisEntry *mQueryAnalysis;
+    void freeMemory();
 
-    public:
-        QueryAnalysisEntry(GSQueryAnalysisEntry* queryAnalysis);
-        ~QueryAnalysisEntry();
-        void close();
-        void get(GSQueryAnalysisEntry* queryAnalysis);
-
+ public:
+    explicit QueryAnalysisEntry(GSQueryAnalysisEntry *queryAnalysis);
+    ~QueryAnalysisEntry();
+    void close();
+    void get(GSQueryAnalysisEntry *queryAnalysis);
 };
+} /* namespace griddb */
 
-}
 #endif /* SRC_QUERYANALYSISENTRY_H_ */
 

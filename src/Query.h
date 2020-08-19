@@ -22,7 +22,6 @@
 #include "gridstore.h"
 #include "RowSet.h"
 #include "GSException.h"
-using namespace std;
 
 namespace griddb {
 
@@ -32,24 +31,22 @@ namespace griddb {
 
 class Query {
     friend class Container;
-    private:
-        GSQuery *mQuery;
-        GSContainerInfo *mContainerInfo;
-        GSRow* mRow;
+ private:
+    GSQuery *mQuery;
+    GSContainerInfo *mContainerInfo;
+    GSRow *mRow;
 
-    public:
-        ~Query();
-        void close();
-        RowSet* fetch(bool for_update = false);
-        void set_fetch_options(int limit);
-        RowSet* get_row_set();
-        GSQuery* gs_ptr();
+ public:
+    ~Query();
+    void close();
+    RowSet* fetch(bool for_update = false);
+    void set_fetch_options(int limit);
+    RowSet* get_row_set();
+    GSQuery* gs_ptr();
 
-    private:
-        Query(GSQuery *query, GSContainerInfo *containerInfo, GSRow *gsRow);
-
+ private:
+    Query(GSQuery *query, GSContainerInfo *containerInfo, GSRow *gsRow);
 };
-
-}
+} /* namespace griddb */
 
 #endif /* _QUERY_H_ */

@@ -25,11 +25,11 @@ namespace griddb {
     ContainerInfo::ContainerInfo(GSContainerInfo *containerInfo) {
         assert(containerInfo != NULL);
         init(containerInfo->name, containerInfo->type,
-                containerInfo->columnInfoList, containerInfo->columnCount,
-                containerInfo->rowKeyAssigned, NULL);
-        //Assign values from argument to mContainer
-        GSTimeSeriesProperties* gsProps = NULL;
-        GSTriggerInfo* triggerInfoList = NULL;
+             containerInfo->columnInfoList, containerInfo->columnCount,
+             containerInfo->rowKeyAssigned, NULL);
+        // Assign values from argument to mContainer
+        GSTimeSeriesProperties *gsProps = NULL;
+        GSTriggerInfo *triggerInfoList = NULL;
 
         try {
             if (containerInfo->timeSeriesProperties) {
@@ -41,12 +41,13 @@ namespace griddb {
             }
 
             if (containerInfo->dataAffinity) {
-                Util::strdup(&mContainerInfo.dataAffinity, containerInfo->dataAffinity);
+                Util::strdup(&mContainerInfo.dataAffinity,
+                             containerInfo->dataAffinity);
             } else {
                 mContainerInfo.dataAffinity = NULL;
             }
-        } catch (bad_alloc& ba) {
-            //case allocation memory error
+        } catch (std::bad_alloc &ba) {
+            // Case allocation memory error
             if (gsProps) {
                 delete gsProps;
             }
@@ -60,17 +61,20 @@ namespace griddb {
         }
 
         if (containerInfo->timeSeriesProperties) {
-            memcpy(gsProps, containerInfo->timeSeriesProperties, sizeof(GSTimeSeriesProperties));
+            memcpy(gsProps, containerInfo->timeSeriesProperties,
+                   sizeof(GSTimeSeriesProperties));
         }
         mContainerInfo.timeSeriesProperties = gsProps;
 
         if (containerInfo->triggerInfoList) {
-            memcpy(triggerInfoList, containerInfo->triggerInfoList, sizeof(GSTriggerInfo));
+            memcpy(triggerInfoList, containerInfo->triggerInfoList,
+                   sizeof(GSTriggerInfo));
         }
 
         mContainerInfo.triggerInfoList = triggerInfoList;
 
-        mContainerInfo.columnOrderIgnorable = containerInfo->columnOrderIgnorable;
+        mContainerInfo.columnOrderIgnorable = containerInfo
+                ->columnOrderIgnorable;
         mContainerInfo.triggerInfoCount = containerInfo->triggerInfoCount;
         mColumnInfoList.columnInfo = NULL;
         mColumnInfoList.size = 0;
@@ -85,27 +89,29 @@ namespace griddb {
      * @param row_key The boolean value indicating whether the Row key Column is assigned
      * @param *expiration Stores the information about option of TimeSeries configuration
      */
-    ContainerInfo::ContainerInfo(const GSChar* name, const GSColumnInfo* props, int propsCount,
-            GSContainerType type, bool row_key, ExpirationInfo* expiration) {
+    ContainerInfo::ContainerInfo(const GSChar *name, const GSColumnInfo *props,
+                                 int propsCount, GSContainerType type,
+                                 bool row_key, ExpirationInfo *expiration) {
         init(name, type, props, propsCount, row_key, expiration);
     }
 
     /**
      * Initialize values of Container Info object
      */
-    void ContainerInfo::init(const GSChar* name,
-            GSContainerType type, const GSColumnInfo* props,
-            int propsCount, bool rowKeyAssigned, ExpirationInfo* expiration) {
-        GSColumnInfo* columnInfoList = NULL;
-        GSChar* containerName = NULL;
-        GSTimeSeriesProperties* timeProps = NULL;
+    void ContainerInfo::init(const GSChar *name, GSContainerType type,
+                             const GSColumnInfo *props, int propsCount,
+                             bool rowKeyAssigned, ExpirationInfo *expiration) {
+        GSColumnInfo *columnInfoList = NULL;
+        GSChar *containerName = NULL;
+        GSTimeSeriesProperties *timeProps = NULL;
 
         try {
             if (propsCount > 0 && props != NULL) {
                 columnInfoList = new GSColumnInfo[propsCount]();
-                //Copy memory of GSColumnInfo list
-                memcpy(columnInfoList, props, propsCount*sizeof(GSColumnInfo));
-                //Copy memory of columns name
+                // Copy memory of GSColumnInfo list
+                memcpy(columnInfoList, props,
+                       propsCount * sizeof(GSColumnInfo));
+                // Copy memory of columns name
                 for (int i = 0; i < propsCount; i++) {
                     if (props[i].name != NULL) {
                         Util::strdup(&(columnInfoList[i].name), props[i].name);
@@ -119,11 +125,11 @@ namespace griddb {
                 timeProps = new GSTimeSeriesProperties();
             }
 
-            //Container name memory is copied via strdup function
+            // Container name memory is copied via strdup function
             if (name != NULL) {
-                Util::strdup((const GSChar**)&containerName, name);
+                Util::strdup((const GSChar**) &containerName, name);
             }
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             if (columnInfoList) {
                 for (int i = 0; i < propsCount; i++) {
                     if (columnInfoList[i].name) {
@@ -142,10 +148,12 @@ namespace griddb {
         }
 
         if (expiration != NULL) {
-            memcpy(timeProps, expiration->gs_ts(), sizeof(GSTimeSeriesProperties));
+            memcpy(timeProps, expiration->gs_ts(),
+                   sizeof(GSTimeSeriesProperties));
         }
 
-        mContainerInfo = {containerName, type, (size_t)propsCount, columnInfoList, rowKeyAssigned};
+        mContainerInfo = { containerName, type, (size_t) propsCount,
+                columnInfoList, rowKeyAssigned };
         if (timeProps != NULL) {
             mContainerInfo.timeSeriesProperties = timeProps;
         }
@@ -155,34 +163,34 @@ namespace griddb {
     }
 
     ContainerInfo::~ContainerInfo() {
-        //Free memory for the copy of container name
+        // Free memory for the copy of container name
         if (mContainerInfo.name) {
             delete[] mContainerInfo.name;
         }
 
-        //Free memory for the copy of ColumnInfo list
+        // Free memory for the copy of ColumnInfo list
         if (mContainerInfo.columnInfoList) {
-            //Free memory of columns name
-            for(int i = 0; i < mContainerInfo.columnCount; i++) {
-                if(mContainerInfo.columnInfoList[i].name) {
+            // Free memory of columns name
+            for (int i = 0; i < mContainerInfo.columnCount; i++) {
+                if (mContainerInfo.columnInfoList[i].name) {
                     delete[] mContainerInfo.columnInfoList[i].name;
                 }
             }
             delete[] mContainerInfo.columnInfoList;
         }
 
-        //Free memory of TimeSeriesProperties if existed
+        // Free memory of TimeSeriesProperties if existed
         if (mContainerInfo.timeSeriesProperties) {
             delete mContainerInfo.timeSeriesProperties;
         }
 
-        //Free memory of dataAffinity if existed
+        // Free memory of dataAffinity if existed
         if (mContainerInfo.dataAffinity) {
             delete[] mContainerInfo.dataAffinity;
         }
 
-        //Free memory of triggerInfoList if existed
-        if(mContainerInfo.triggerInfoList) {
+        // Free memory of triggerInfoList if existed
+        if (mContainerInfo.triggerInfoList) {
             delete mContainerInfo.triggerInfoList;
         }
         if (mExpInfo != NULL) {
@@ -194,7 +202,7 @@ namespace griddb {
      * @brief Set name of Container which is stored in ContainerInfo
      * @param *containerName Stores the name of Container
      */
-    void ContainerInfo::set_name(GSChar* containerName) {
+    void ContainerInfo::set_name(GSChar *containerName) {
         if (mContainerInfo.name) {
             delete[] mContainerInfo.name;
         }
@@ -203,7 +211,7 @@ namespace griddb {
         } else {
             try {
                 Util::strdup(&(mContainerInfo.name), containerName);
-            } catch (bad_alloc& ba) {
+            } catch (std::bad_alloc &ba) {
                 throw GSException("Memory allocation error");
             }
         }
@@ -274,10 +282,10 @@ namespace griddb {
      *  @param columnInfoList A struct which store information of column
      */
     void ContainerInfo::set_column_info_list(ColumnInfoList columnInfoList) {
-        //Free current stored ColumnInfo list
+        // Free current stored ColumnInfo list
         if (mContainerInfo.columnInfoList) {
-            //Free memory of columns name
-            for(int i = 0; i < mContainerInfo.columnCount; i++) {
+            // Free memory of columns name
+            for (int i = 0; i < mContainerInfo.columnCount; i++) {
                 delete[] mContainerInfo.columnInfoList[i].name;
             }
             delete[] mContainerInfo.columnInfoList;
@@ -289,22 +297,24 @@ namespace griddb {
         if (columnInfoList.size == 0 || columnInfoList.columnInfo == NULL) {
             return;
         }
-        
-        GSColumnInfo* tmpColumnInfoList;
+
+        GSColumnInfo *tmpColumnInfoList;
         try {
             tmpColumnInfoList = new GSColumnInfo[columnInfoList.size]();
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             throw GSException("Memory allocation error");
         }
-        
-        //Copy memory of GSColumnInfo list
-        memcpy(tmpColumnInfoList, columnInfoList.columnInfo, columnInfoList.size*sizeof(GSColumnInfo));
-        //Copy memory of columns name
+
+        // Copy memory of GSColumnInfo list
+        memcpy(tmpColumnInfoList, columnInfoList.columnInfo,
+               columnInfoList.size * sizeof(GSColumnInfo));
+        // Copy memory of columns name
         for (int i = 0; i < columnInfoList.size; i++) {
             if (columnInfoList.columnInfo[i].name) {
                 try {
-                    Util::strdup(&(tmpColumnInfoList[i].name), columnInfoList.columnInfo[i].name);
-                } catch (bad_alloc& ba) {
+                    Util::strdup(&(tmpColumnInfoList[i].name),
+                                 columnInfoList.columnInfo[i].name);
+                } catch (std::bad_alloc &ba) {
                     delete[] tmpColumnInfoList;
                     tmpColumnInfoList = NULL;
                     throw GSException("Memory allocation error");
@@ -321,25 +331,28 @@ namespace griddb {
      *  @return A struct which store information of column
      */
     ColumnInfoList ContainerInfo::get_column_info_list() {
-        mColumnInfoList.columnInfo = (GSColumnInfo*) mContainerInfo.columnInfoList;
+        mColumnInfoList.columnInfo = const_cast<GSColumnInfo*>(mContainerInfo
+                .columnInfoList);
         mColumnInfoList.size = mContainerInfo.columnCount;
         return mColumnInfoList;
     }
 
     /**
      *  @brief Set expirationInfo for timeseries container which is stored in ContainerInfo
-     *  @param *expirationInfo A ExpirationInfo object which store the information about optional configuration settings used for newly creating or updating a TimeSeries
+     *  @param *expirationInfo A ExpirationInfo object which store the
+     *  information about optional configuration settings used for newly
+     *  creating or updating a TimeSeries
      */
-    void ContainerInfo::set_expiration_info(ExpirationInfo* expirationInfo) {
+    void ContainerInfo::set_expiration_info(ExpirationInfo *expirationInfo) {
         if (mContainerInfo.timeSeriesProperties != NULL) {
             delete mContainerInfo.timeSeriesProperties;
             mContainerInfo.timeSeriesProperties = NULL;
         }
         if (expirationInfo) {
-            GSTimeSeriesProperties* ts;
+            GSTimeSeriesProperties *ts;
             try {
                 ts = new GSTimeSeriesProperties();
-            } catch (bad_alloc& ba) {
+            } catch (std::bad_alloc &ba) {
                 throw GSException("Memory allocation error");
             }
 
@@ -351,20 +364,26 @@ namespace griddb {
 
     /**
      *  @brief Get expirationInfo for timeseries container which is stored in ContainerInfo
-     *  @return A ExpirationInfo object which store the information about optional configuration settings used for newly creating or updating a TimeSeries
+     *  @return A ExpirationInfo object which store the information about
+     *  optional configuration settings used for newly creating or updating a TimeSeries
      */
     ExpirationInfo* ContainerInfo::get_expiration_info() {
-        if (mContainerInfo.timeSeriesProperties != NULL){
+        const GSTimeSeriesProperties *timeSeriesProperties = mContainerInfo
+                .timeSeriesProperties;
+        if (timeSeriesProperties != NULL) {
             if (mExpInfo != NULL) {
-                mExpInfo->set_time(mContainerInfo.timeSeriesProperties->rowExpirationTime);
-                mExpInfo->set_time_unit(mContainerInfo.timeSeriesProperties->rowExpirationTimeUnit);
-                mExpInfo->set_division_count(mContainerInfo.timeSeriesProperties->expirationDivisionCount);
+                mExpInfo->set_time(timeSeriesProperties->rowExpirationTime);
+                mExpInfo->set_time_unit(
+                        timeSeriesProperties->rowExpirationTimeUnit);
+                mExpInfo->set_division_count(
+                        timeSeriesProperties->expirationDivisionCount);
             } else {
                 try {
-                    mExpInfo = new ExpirationInfo(mContainerInfo.timeSeriesProperties->rowExpirationTime,
-                            mContainerInfo.timeSeriesProperties->rowExpirationTimeUnit,
-                            mContainerInfo.timeSeriesProperties->expirationDivisionCount);
-                } catch (bad_alloc& ba) {
+                    mExpInfo = new ExpirationInfo(
+                            timeSeriesProperties->rowExpirationTime,
+                            timeSeriesProperties->rowExpirationTimeUnit,
+                            timeSeriesProperties->expirationDivisionCount);
+                } catch (std::bad_alloc &ba) {
                     throw GSException("Memory allocation error");
                 }
             }

@@ -16,20 +16,17 @@
 
 #ifndef _TIMESTAMPUTILS_H_
 #define _TIMESTAMPUTILS_H_
-#include "gridstore.h"
 #include <string>
+#include "gridstore.h"
 #include "GSException.h"
-
-using namespace std;
 
 namespace griddb {
 
 class TimestampUtils {
-
-    public:
-        TimestampUtils();
-        ~TimestampUtils();
-        static int64_t get_time_millis(int64_t timestamp);
+ public:
+    TimestampUtils();
+    ~TimestampUtils();
+    static int64_t get_time_millis(int64_t timestamp);
 };
 
 } /* namespace griddb */

@@ -24,7 +24,8 @@ namespace griddb {
      * @brief Constructor a new QueryAnalysisEntry::QueryAnalysisEntry object
      * @param *queryAnalysis Represents one of information entries composing a query plan and the results of analyzing a query operation.
      */
-    QueryAnalysisEntry::QueryAnalysisEntry(GSQueryAnalysisEntry* queryAnalysis) : mQueryAnalysis(NULL) {
+    QueryAnalysisEntry::QueryAnalysisEntry(GSQueryAnalysisEntry *queryAnalysis) :
+            mQueryAnalysis(NULL) {
         if (!queryAnalysis) {
             return;
         }
@@ -38,28 +39,30 @@ namespace griddb {
             mQueryAnalysis->type = NULL;
             mQueryAnalysis->value = NULL;
             mQueryAnalysis->valueType = NULL;
-            
+
             if (queryAnalysis->statement) {
-                Util::strdup(&(mQueryAnalysis->statement), queryAnalysis->statement);
+                Util::strdup(&(mQueryAnalysis->statement),
+                             queryAnalysis->statement);
             }
-            
+
             if (queryAnalysis->type) {
                 Util::strdup(&(mQueryAnalysis->type), queryAnalysis->type);
             }
-            
+
             if (queryAnalysis->value) {
                 Util::strdup(&(mQueryAnalysis->value), queryAnalysis->value);
             }
 
             if (queryAnalysis->valueType) {
-                Util::strdup(&(mQueryAnalysis->valueType), queryAnalysis->valueType);
+                Util::strdup(&(mQueryAnalysis->valueType),
+                             queryAnalysis->valueType);
             }
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             this->freeMemory();
             throw GSException(mQueryAnalysis, "Memory allocation error");
         }
 
-        //Copy value which queryAnalysis point to
+        // Copy value which queryAnalysis point to
         mQueryAnalysis->id = queryAnalysis->id;
         mQueryAnalysis->depth = queryAnalysis->depth;
     }
@@ -100,7 +103,7 @@ namespace griddb {
      * @brief get QueryAnalysisEntry data
      * @param *queryAnalysis Represents one of information entries composing a query plan and the results of analyzing a query operation.
      */
-    void QueryAnalysisEntry::get(GSQueryAnalysisEntry* queryAnalysis) {
+    void QueryAnalysisEntry::get(GSQueryAnalysisEntry *queryAnalysis) {
         assert(queryAnalysis != NULL);
         queryAnalysis->id = mQueryAnalysis->id;
         queryAnalysis->depth = mQueryAnalysis->depth;
@@ -111,7 +114,8 @@ namespace griddb {
 
         try {
             if (mQueryAnalysis->statement) {
-                Util::strdup(&(queryAnalysis->statement), mQueryAnalysis->statement);
+                Util::strdup(&(queryAnalysis->statement),
+                             mQueryAnalysis->statement);
             }
 
             if (mQueryAnalysis->type) {
@@ -123,9 +127,10 @@ namespace griddb {
             }
 
             if (mQueryAnalysis->valueType) {
-                Util::strdup(&(queryAnalysis->valueType), mQueryAnalysis->valueType);
+                Util::strdup(&(queryAnalysis->valueType),
+                             mQueryAnalysis->valueType);
             }
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             if (queryAnalysis->statement) {
                 delete[] queryAnalysis->statement;
             }
@@ -141,4 +146,4 @@ namespace griddb {
             throw GSException(mQueryAnalysis, "Memory allocation error");
         }
     }
-}
+} /* namespace griddb */

@@ -20,11 +20,12 @@
 
 namespace griddb {
 
-    StoreFactory::StoreFactory() : mFactory(NULL) {
+    StoreFactory::StoreFactory() :
+            mFactory(NULL) {
     }
 
     StoreFactory::~StoreFactory() {
-        //allRelated = FALSE, since Gridstore object is managed by Store class
+        // allRelated = FALSE, since Gridstore object is managed by Store class
         close(GS_FALSE);
     }
 
@@ -43,14 +44,14 @@ namespace griddb {
      * @return The pointer to a pointer variable to store StoreFactory instance
      */
     StoreFactory* StoreFactory::get_instance() {
-        GSGridStoreFactory* pFactory = gsGetDefaultFactory();
+        GSGridStoreFactory *pFactory = gsGetDefaultFactory();
 
         try {
-            StoreFactory* factory(new StoreFactory());
+            StoreFactory *factory(new StoreFactory());
             factory->set_factory(pFactory);
 
             return factory;
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             gsCloseFactory(&pFactory, GS_FALSE);
             throw GSException("Memory allocation error");
         }
@@ -59,7 +60,8 @@ namespace griddb {
     /*
      * set GSPropertyEntry
      */
-    void StoreFactory::set_property_entry(GSPropertyEntry *prop, const char* name, const char* value) {
+    void StoreFactory::set_property_entry(GSPropertyEntry *prop,
+                                          const char *name, const char *value) {
         prop->name = name;
         prop->value = value;
     }
@@ -67,16 +69,17 @@ namespace griddb {
     /*
      * Check whether in MULTICAST mode
      */
-    bool StoreFactory::check_multicast(const char* address) {
+    bool StoreFactory::check_multicast(const char *address) {
         if (address && address[0] != '\0') {
-            char* tmp;
+            char *tmp;
+            char *savePtr;
             try {
-                Util::strdup((const GSChar**)&tmp, address);
-            } catch (bad_alloc& ba) {
+                Util::strdup((const GSChar**) &tmp, address);
+            } catch (std::bad_alloc &ba) {
                 throw GSException("Memory allocation error");
             }
 
-            char *octets = strtok((char*)tmp, ".");
+            char *octets = strtok_r(tmp, ".", &savePtr);
             if (octets) {
                 int firstOctet = atoi(octets);
                 int first4Bits = firstOctet >> 4 & 0x0f;
@@ -102,16 +105,20 @@ namespace griddb {
      * @param *notification_provider A URL of address provider
      * @return The pointer to a pointer variable to store Store instance
      */
-    Store* StoreFactory::get_store(const char* host, int32_t port, const char* cluster_name,
-            const char* database, const char* user, const char* password,
-            const char* notification_member, const char* notification_provider) {
+    Store* StoreFactory::get_store(const char *host, int32_t port,
+                                   const char *cluster_name,
+                                   const char *database, const char *user,
+                                   const char *password,
+                                   const char *notification_member,
+                                   const char *notification_provider) {
         size_t index = 0;
-        GSPropertyEntry local_props[MAX_PROPS] = {0};
-        std::string lport = std::to_string((long long int)port);
+        GSPropertyEntry local_props[MAX_PROPS] = { 0 };
+        std::string lport = std::to_string(port);
 
         if (check_multicast(host)) {
             set_property_entry(&local_props[0], "notificationAddress", host);
-            set_property_entry(&local_props[1], "notificationPort", lport.c_str());
+            set_property_entry(&local_props[1], "notificationPort",
+                               lport.c_str());
             index += 2;
         } else if (host && host[0] != '\0') {
             set_property_entry(&local_props[0], "host", host);
@@ -120,15 +127,18 @@ namespace griddb {
         }
 
         if (notification_member && notification_member[0] != '\0') {
-            set_property_entry(&local_props[index], "notificationMember", notification_member);
+            set_property_entry(&local_props[index], "notificationMember",
+                               notification_member);
             index++;
         }
         if (notification_provider && notification_provider[0] != '\0') {
-            set_property_entry(&local_props[index], "notificationProvider", notification_provider);
+            set_property_entry(&local_props[index], "notificationProvider",
+                               notification_provider);
             index++;
         }
         if (cluster_name && cluster_name[0] != '\0') {
-            set_property_entry(&local_props[index], "clusterName", cluster_name);
+            set_property_entry(&local_props[index], "clusterName",
+                               cluster_name);
             index++;
         }
         if (database && database[0] != '\0') {
@@ -138,7 +148,6 @@ namespace griddb {
         if (user && user[0] != '\0') {
             set_property_entry(&local_props[index], "user", user);
             index++;
-
         }
         if (password && password[0] != '\0') {
             set_property_entry(&local_props[index], "password", password);
@@ -154,10 +163,10 @@ namespace griddb {
         }
 
         try {
-            //return new Store(store);
-            Store* store = new Store(gsStore);
+            // Return new Store(store);
+            Store *store = new Store(gsStore);
             return store;
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             gsCloseGridStore(&gsStore, GS_FALSE);
             throw GSException(mFactory, "Memory allocation error");
         }
@@ -174,8 +183,7 @@ namespace griddb {
     /*
      * Set attribute: mFactory
      */
-    void StoreFactory::set_factory(GSGridStoreFactory* factory) {
+    void StoreFactory::set_factory(GSGridStoreFactory *factory) {
         mFactory = factory;
     }
-
-}
+} /* namespace griddb */

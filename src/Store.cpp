@@ -22,11 +22,14 @@ namespace griddb {
      * @brief Constructor a new Store::Store object
      * @param *store A pointer which provides functions to manipulate the entire data managed in one GridDB system.
      */
-    Store::Store(GSGridStore *store) : mStore(store), timestamp_output_with_float(false) {
+    Store::Store(GSGridStore *store) :
+            mStore(store),
+            timestamp_output_with_float(false) {
     }
 
     Store::~Store() {
-        // allRelated = FALSE, since all container object is managed by Container class
+        // allRelated = FALSE,
+        // since all container object is managed by Container class
         close(GS_FALSE);
     }
 
@@ -45,7 +48,7 @@ namespace griddb {
      * @brief Delete container with specified name
      * @param *name Container name
      */
-    void Store::drop_container(const char* name) {
+    void Store::drop_container(const char *name) {
         GSResult ret = gsDropContainer(mStore, name);
         if (!GS_SUCCEEDED(ret)) {
             throw GSException(mStore, ret);
@@ -57,10 +60,11 @@ namespace griddb {
      * @param *name Container name
      * @return Return a pointer which stores all information of container
      */
-    ContainerInfo* Store::get_container_info(const char* name) {
+    ContainerInfo* Store::get_container_info(const char *name) {
         GSContainerInfo gsContainerInfo = GS_CONTAINER_INFO_INITIALIZER;
         GSChar bExists;
-        GSResult ret = gsGetContainerInfo(mStore, name, &gsContainerInfo, &bExists);
+        GSResult ret = gsGetContainerInfo(mStore, name, &gsContainerInfo,
+                                          &bExists);
         if (!GS_SUCCEEDED(ret)) {
             throw GSException(mStore, ret);
         }
@@ -69,9 +73,9 @@ namespace griddb {
         }
 
         try {
-            ContainerInfo* containerInfo = new ContainerInfo(&gsContainerInfo);
+            ContainerInfo *containerInfo = new ContainerInfo(&gsContainerInfo);
             return containerInfo;
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             throw GSException(mStore, "Memory allocation error");
         }
     }
@@ -82,24 +86,26 @@ namespace griddb {
      * @param modifiable Indicates whether the column layout of the existing Container can be modified or not
      * @return The pointer to a pointer variable to store Container instance
      */
-    Container* Store::put_container(ContainerInfo* info,
-            bool modifiable) {
+    Container* Store::put_container(ContainerInfo *info, bool modifiable) {
         if (info == NULL) {
-            throw GSException(mStore, "Invalid input for \"Store::put_container\" method. Argument container info can not be null");
+            throw GSException(mStore, "Invalid input for"
+                              " \"Store::put_container\" method."
+                              " Argument container info can not be null");
         }
         // Get Container information
-        GSContainerInfo* gsInfo = info->gs_info();
-        GSContainer* pContainer = NULL;
+        GSContainerInfo *gsInfo = info->gs_info();
+        GSContainer *pContainer = NULL;
         // Create new gsContainer
-        GSResult ret = gsPutContainerGeneral(mStore, gsInfo->name, gsInfo, modifiable, &pContainer);
+        GSResult ret = gsPutContainerGeneral(mStore, gsInfo->name, gsInfo,
+                                             modifiable, &pContainer);
         if (!GS_SUCCEEDED(ret)) {
             throw GSException(mStore, ret);
         }
 
         try {
-            Container* container = new Container(pContainer, gsInfo);
+            Container *container = new Container(pContainer, gsInfo);
             return container;
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             gsCloseContainer(&pContainer, GS_FALSE);
             throw GSException(mStore, "Memory allocation error");
         }
@@ -110,14 +116,14 @@ namespace griddb {
      * @param *name Container name
      * @return The pointer to a pointer variable to store Container instance
      */
-    Container* Store::get_container(const char* name) {
-        GSContainer* pContainer;
+    Container* Store::get_container(const char *name) {
+        GSContainer *pContainer;
         GSResult ret = gsGetContainerGeneral(mStore, name, &pContainer);
         if (!GS_SUCCEEDED(ret)) {
             throw GSException(mStore, ret);
         }
         if (pContainer == NULL) {
-            //If not found container, return NULL in target language
+            // If not found container, return NULL in target language
             return NULL;
         }
         GSContainerInfo containerInfo = GS_CONTAINER_INFO_INITIALIZER;
@@ -128,9 +134,9 @@ namespace griddb {
             throw GSException(mStore, ret);
         }
         try {
-            Container* container = new Container(pContainer, &containerInfo);
+            Container *container = new Container(pContainer, &containerInfo);
             return container;
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             gsCloseContainer(&pContainer, GS_FALSE);
             throw GSException(mStore, "Memory allocation error");
         }
@@ -141,7 +147,7 @@ namespace griddb {
      * @param **queryList A list of query
      * @param queryCount Number of element in query list
      */
-    void Store::fetch_all(GSQuery* const* queryList, size_t queryCount) {
+    void Store::fetch_all(GSQuery *const*queryList, size_t queryCount) {
         GSResult ret = gsFetchAll(mStore, queryList, queryCount);
         if (!GS_SUCCEEDED(ret)) {
             throw GSException(mStore, ret);
@@ -153,7 +159,7 @@ namespace griddb {
      * @return The pointer to a pointer variable to store PartitionController instance
      */
     PartitionController* Store::partition_info() {
-         GSPartitionController* partitionController;
+        GSPartitionController *partitionController;
 
         GSResult ret = gsGetPartitionController(mStore, &partitionController);
 
@@ -162,9 +168,10 @@ namespace griddb {
         }
 
         try {
-            PartitionController* partition = new PartitionController(partitionController);
+            PartitionController *partition = new PartitionController(
+                    partitionController);
             return partition;
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             gsClosePartitionController(&partitionController);
             throw GSException(mStore, "Memory allocation error");
         }
@@ -176,7 +183,7 @@ namespace griddb {
      * @return The pointer to a pointer variable to store RowKeyPredicate instance
      */
     RowKeyPredicate* Store::create_row_key_predicate(GSType type) {
-        GSRowKeyPredicate* predicate;
+        GSRowKeyPredicate *predicate;
 
         GSResult ret = gsCreateRowKeyPredicate(mStore, type, &predicate);
 
@@ -185,9 +192,10 @@ namespace griddb {
         }
 
         try {
-            RowKeyPredicate* rowKeyPredicate = new RowKeyPredicate(predicate, type);
+            RowKeyPredicate *rowKeyPredicate = new RowKeyPredicate(predicate,
+                                                                   type);
             return rowKeyPredicate;
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             gsCloseRowKeyPredicate(&predicate);
             throw GSException(mStore, "Memory allocation error");
         }
@@ -200,19 +208,20 @@ namespace griddb {
      * @param **listContainerName list container name
      * @param containerCount Number of container
      */
-    void Store::multi_put(GSRow*** listRow, const int *listRowContainerCount,
-            const char ** listContainerName, size_t containerCount) {
+    void Store::multi_put(GSRow ***listRow, const int *listRowContainerCount,
+                          const char **listContainerName,
+                          size_t containerCount) {
         assert(listRowContainerCount != NULL);
         assert(listContainerName != NULL);
         GSResult ret;
-        GSContainerRowEntry* entryList;
-        
+        GSContainerRowEntry *entryList;
+
         try {
             entryList = new GSContainerRowEntry[containerCount]();
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             throw GSException(mStore, "Memory allocation error");
         }
-        for (int i= 0; i < containerCount; i++) {
+        for (int i = 0; i < containerCount; i++) {
             entryList[i].containerName = listContainerName[i];
             entryList[i].rowCount = listRowContainerCount[i];
             entryList[i].rowList = (void* const*) listRow[i];
@@ -234,9 +243,11 @@ namespace griddb {
      * @param ***typeList A pointer refers to an array stores type of column of each container
      * @param **orderFromInput A pointer refers to an array stores order of each container for output
      */
-    void Store::multi_get(const GSRowKeyPredicateEntry* const * predicateList,
-            size_t predicateCount, GSContainerRowEntry **entryList, size_t* containerCount,
-            int **colNumList, GSType*** typeList, int **orderFromInput) {
+    void Store::multi_get(const GSRowKeyPredicateEntry *const*predicateList,
+                          size_t predicateCount,
+                          GSContainerRowEntry **entryList,
+                          size_t *containerCount, int **colNumList,
+                          GSType ***typeList, int **orderFromInput) {
         assert(predicateList != NULL);
         assert(predicateCount >= 0);
         assert(colNumList != NULL);
@@ -247,37 +258,44 @@ namespace griddb {
         *typeList = NULL;
         *orderFromInput = NULL;
         *containerCount = 0;
-        int length = (int) predicateCount;
+        int length = static_cast<int>(predicateCount);
 
         try {
             // get number of column of rows in each container.
-            *colNumList = new int[predicateCount](); //will be free in argout
-            *typeList = new GSType*[predicateCount](); //will be free in argout
-            *orderFromInput = new int[length](); //will be free in argout
-        } catch (bad_alloc& ba) {
-            this->freeMemoryMultiGet(colNumList, typeList, length, orderFromInput);
+            *colNumList = new int[predicateCount]();  // will be free in argout
+            *typeList = new GSType*[predicateCount]();  // will be free in argout
+            *orderFromInput = new int[length]();  // will be free in argout
+        } catch (std::bad_alloc &ba) {
+            this->freeMemoryMultiGet(colNumList, typeList, length,
+                                     orderFromInput);
             throw GSException(mStore, "Memory allocation error");
         }
 
-        bool setNumList = this->setMultiContainerNumList(predicateList,
-                    length, &colNumList, &typeList);
+        bool setNumList = this->setMultiContainerNumList(predicateList, length,
+                                                         &colNumList,
+                                                         &typeList);
         if (!setNumList) {
-            this->freeMemoryMultiGet(colNumList, typeList, length, orderFromInput);
-            throw GSException(mStore, "Set multi containers number list and type list error");
+            this->freeMemoryMultiGet(colNumList, typeList, length,
+                                     orderFromInput);
+            throw GSException(mStore, "Set multi containers number"
+                              " list and type list error");
         }
 
         // Get data for entryList
-        GSResult ret = gsGetMultipleContainerRows(mStore, predicateList,
-                predicateCount, (const GSContainerRowEntry**) entryList, containerCount);
+        GSResult ret = gsGetMultipleContainerRows(
+                mStore, predicateList, predicateCount,
+                (const GSContainerRowEntry**) entryList, containerCount);
         if (!GS_SUCCEEDED(ret)) {
-            this->freeMemoryMultiGet(colNumList, typeList, length, orderFromInput);
+            this->freeMemoryMultiGet(colNumList, typeList, length,
+                                     orderFromInput);
             throw GSException(mStore, ret);
         }
 
         // set data for orderFromInput
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
-                if (strcmp((*predicateList)[i].containerName, (*entryList)[j].containerName) == 0){
+                if (strcmp((*predicateList)[i].containerName,
+                           (*entryList)[j].containerName) == 0) {
                     (*orderFromInput)[i] = j;
                 }
             }
@@ -287,10 +305,10 @@ namespace griddb {
     /**
      * Support free memory in multi_get function when exception happen
      */
-    void Store::freeMemoryMultiGet(int **colNumList, GSType*** typeList,
-            int length, int **orderFromInput) {
+    void Store::freeMemoryMultiGet(int **colNumList, GSType ***typeList,
+                                   int length, int **orderFromInput) {
         if (*colNumList) {
-            delete [] *colNumList;
+            delete[] *colNumList;
             *colNumList = NULL;
         }
 
@@ -300,11 +318,11 @@ namespace griddb {
                     delete[] (*typeList)[i];
                 }
             }
-            delete [] *typeList;
+            delete[] *typeList;
             *typeList = NULL;
         }
         if (*orderFromInput) {
-            delete [] *orderFromInput;
+            delete[] *orderFromInput;
             *orderFromInput = NULL;
         }
     }
@@ -312,12 +330,14 @@ namespace griddb {
     /**
      * Support multi_get function to put data into colNumList and typeList
      */
-    bool Store::setMultiContainerNumList(const GSRowKeyPredicateEntry* const * predicateList,
-            int length, int ***colNumList, GSType**** typeList) {
+    bool Store::setMultiContainerNumList(
+            const GSRowKeyPredicateEntry *const*predicateList, int length,
+            int ***colNumList, GSType ****typeList) {
         for (int i = 0; i < length; i++) {
             Container *tmpContainer;
             try {
-                tmpContainer = this->get_container((*predicateList)[i].containerName);
+                tmpContainer = this->get_container(
+                        (*predicateList)[i].containerName);
             } catch (GSException e) {
                 return false;
             }
@@ -327,13 +347,14 @@ namespace griddb {
             (**colNumList)[i] = tmpContainer->getColumnCount();
 
             try {
-                //(**typeList)[i] will be freed in freeMemoryMultiGet() function or argout
+                // (**typeList)[i] will be freed in freeMemoryMultiGet()
+                // function or argout
                 (**typeList)[i] = new GSType[(**colNumList)[i]]();
-            } catch (bad_alloc& ba) {
+            } catch (std::bad_alloc &ba) {
                 delete tmpContainer;
                 return false;
             }
-            
+
             for (int j = 0; j < (**colNumList)[i]; j++) {
                 (**typeList)[i][j] = tmpContainer->getGSTypeList()[j];
             }
@@ -341,5 +362,4 @@ namespace griddb {
         }
         return true;
     }
-
-}
+} /* namespace griddb */

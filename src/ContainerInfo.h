@@ -17,23 +17,21 @@
 #ifndef _CONTAINERINFO_H_
 #define _CONTAINERINFO_H_
 
+#include <assert.h>
 #include <string>
 #include <cstring>
 #include <utility>
-#include <assert.h>
 
 #include "TimeSeriesProperties.h"
 #include "ExpirationInfo.h"
 #include "GSException.h"
 #include "Util.h"
 
-//Support column_info_list attribute
+// Support column_info_list attribute
 struct ColumnInfoList {
-    GSColumnInfo* columnInfo;
+    GSColumnInfo *columnInfo;
     size_t size;
 };
-
-using namespace std;
 
 namespace griddb {
 
@@ -41,38 +39,40 @@ class ContainerInfo {
     /**
      * Contains information about a specific container
      */
-    private:
-        GSContainerInfo mContainerInfo;
+ private:
+    GSContainerInfo mContainerInfo;
 
-        //tmp attribute to get column info list
-        ColumnInfoList mColumnInfoList;
+    // tmp attribute to get column info list
+    ColumnInfoList mColumnInfoList;
 
-        //tmp attribute support get expiration attribute
-        ExpirationInfo* mExpInfo;
+    // tmp attribute support get expiration attribute
+    ExpirationInfo *mExpInfo;
 
-    public:
-        ContainerInfo(GSContainerInfo *containerInfo);
-        ContainerInfo(const GSChar* name, const GSColumnInfo* props,
-                int propsCount, GSContainerType type,
-                bool row_key, ExpirationInfo* expiration);
-        ~ContainerInfo();
+ public:
+    explicit ContainerInfo(GSContainerInfo *containerInfo);
 
-        void set_name(GSChar* containerName);
-        void set_type(GSContainerType containerType);
-        void set_row_key_assigned(bool rowKeyAssigned);
-        const GSChar* get_name();
-        GSContainerType get_type();
-        GSColumnInfo get_column_info(size_t column);
-        ColumnInfoList get_column_info_list();
-        void set_column_info_list(ColumnInfoList columnInfoList);
-        ExpirationInfo* get_expiration_info();
-        void set_expiration_info(ExpirationInfo* expirationInfo);
-        bool get_row_key_assigned();
-        GSContainerInfo* gs_info();
+    ContainerInfo(const GSChar *name, const GSColumnInfo *props, int propsCount,
+                  GSContainerType type, bool row_key,
+                  ExpirationInfo *expiration);
+    ~ContainerInfo();
 
-    private:
-        void init(const GSChar* name, GSContainerType type, const GSColumnInfo* props,
-                int propsCount, bool rowKeyAssigned, ExpirationInfo* expiration);
+    void set_name(GSChar *containerName);
+    void set_type(GSContainerType containerType);
+    void set_row_key_assigned(bool rowKeyAssigned);
+    const GSChar* get_name();
+    GSContainerType get_type();
+    GSColumnInfo get_column_info(size_t column);
+    ColumnInfoList get_column_info_list();
+    void set_column_info_list(ColumnInfoList columnInfoList);
+    ExpirationInfo* get_expiration_info();
+    void set_expiration_info(ExpirationInfo *expirationInfo);
+    bool get_row_key_assigned();
+    GSContainerInfo* gs_info();
+
+ private:
+    void init(const GSChar *name, GSContainerType type,
+              const GSColumnInfo *props, int propsCount, bool rowKeyAssigned,
+              ExpirationInfo *expiration);
 };
 
 } /* namespace griddb */

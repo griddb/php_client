@@ -23,8 +23,10 @@ namespace griddb {
      * @param *predicate Represents the condition that a row key satisfies.
      * @param type The type of Row key used as a matching condition
      */
-    RowKeyPredicate::RowKeyPredicate(GSRowKeyPredicate *predicate, GSType type): mPredicate(predicate), mType(type),
-            timestamp_output_with_float(false){
+    RowKeyPredicate::RowKeyPredicate(GSRowKeyPredicate *predicate, GSType type) :
+            mPredicate(predicate),
+            mType(type),
+            timestamp_output_with_float(false) {
     }
 
     /**
@@ -57,11 +59,13 @@ namespace griddb {
      * @param *startField The pointer to a variable to store the value of the Row key at the starting position
      * @param *finishField The pointer to a variable to store the value of the Row key at the end position
      */
-    void RowKeyPredicate::get_range(Field* startField, Field* finishField) {
+    void RowKeyPredicate::get_range(Field *startField, Field *finishField) {
         assert(startField != NULL);
         assert(finishField != NULL);
-        startField->type = -1; // for all versions which do not support GS_TYPE_NULL
-        finishField->type = -1; // for all versions which do not support GS_TYPE_NULL
+        // For all versions which do not support GS_TYPE_NULL
+        startField->type = -1;
+        // For all versions which do not support GS_TYPE_NULL
+        finishField->type = -1;
         GSType key_type = get_key_type();
         const GSValue *startKey = NULL;
         const GSValue *endKey = NULL;
@@ -74,9 +78,11 @@ namespace griddb {
             if (startField->type == GS_TYPE_STRING) {
                 if (startKey->asString) {
                     try {
-                        Util::strdup(&(startField->value.asString), startKey->asString);
-                    } catch (bad_alloc& ba) {
-                        throw GSException(mPredicate, "Memory allocation error");
+                        Util::strdup(&(startField->value.asString),
+                                     startKey->asString);
+                    } catch (std::bad_alloc &ba) {
+                        throw GSException(mPredicate,
+                                          "Memory allocation error");
                     }
                 } else {
                     startField->value.asString = NULL;
@@ -87,7 +93,8 @@ namespace griddb {
         }
         ret = gsGetPredicateFinishKeyGeneral(mPredicate, &endKey);
         if (!GS_SUCCEEDED(ret)) {
-            if (startField->type == GS_TYPE_STRING && startField->value.asString) {
+            if (startField->type == GS_TYPE_STRING
+                    && startField->value.asString) {
                 delete[] startField->value.asString;
             }
             throw GSException(mPredicate, ret);
@@ -97,12 +104,15 @@ namespace griddb {
             if (finishField->type == GS_TYPE_STRING) {
                 if (endKey->asString) {
                     try {
-                        Util::strdup(&(finishField->value.asString), endKey->asString);
-                    } catch (bad_alloc& ba) {
-                        if (startField->type == GS_TYPE_STRING && startField->value.asString) {
+                        Util::strdup(&(finishField->value.asString),
+                                     endKey->asString);
+                    } catch (std::bad_alloc &ba) {
+                        if (startField->type == GS_TYPE_STRING
+                                && startField->value.asString) {
                             delete[] startField->value.asString;
                         }
-                        throw GSException(mPredicate, "Memory allocation error");
+                        throw GSException(mPredicate,
+                                          "Memory allocation error");
                     }
                 } else {
                     finishField->value.asString = NULL;
@@ -118,58 +128,70 @@ namespace griddb {
      * @param *startKey The pointer to a variable to store the value of the Row key at the starting position
      * @param *finishKey The pointer to a variable to store the value of the Row key at the end position
      */
-    void RowKeyPredicate::set_range(Field* startKey, Field* finishKey) {
+    void RowKeyPredicate::set_range(Field *startKey, Field *finishKey) {
         assert(startKey != NULL);
         assert(finishKey != NULL);
         GSType key_type = get_key_type();
         GSResult ret;
 
         switch (key_type) {
-        case GS_TYPE_LONG:
-            ret = gsSetPredicateStartKeyByLong(mPredicate, (int64_t*)&startKey->value.asLong);
-            if (!GS_SUCCEEDED(ret)) {
-                throw GSException(mPredicate, ret);
-            }
-            ret = gsSetPredicateFinishKeyByLong(mPredicate, (int64_t *) &finishKey->value.asLong);
-            if (!GS_SUCCEEDED(ret)) {
-                throw GSException(mPredicate, ret);
-            }
-            break;
-        case GS_TYPE_INTEGER:
-            ret = gsSetPredicateStartKeyByInteger(mPredicate, (const int32_t *) &startKey->value.asInteger);
-            if (!GS_SUCCEEDED(ret)) {
-                throw GSException(mPredicate, ret);
-            }
-            ret = gsSetPredicateFinishKeyByInteger(mPredicate, (const int32_t *)&finishKey->value.asInteger);
-            if (!GS_SUCCEEDED(ret)) {
-                throw GSException(mPredicate, ret);
-            }
-            break;
-        case GS_TYPE_STRING:
-            ret = gsSetPredicateStartKeyByString(mPredicate, startKey->value.asString);
-            if (!GS_SUCCEEDED(ret)) {
-                throw GSException(mPredicate, ret);
-            }
-            ret = gsSetPredicateFinishKeyByString(mPredicate, finishKey->value.asString);
-            if (!GS_SUCCEEDED(ret)) {
-                throw GSException(mPredicate, ret);
-            }
-            break;
-        case GS_TYPE_TIMESTAMP:
-            ret = gsSetPredicateStartKeyByTimestamp(mPredicate,
-                    (const GSTimestamp *) &(startKey->value.asTimestamp));
-            if (!GS_SUCCEEDED(ret)) {
-                throw GSException(mPredicate, ret);
-            }
-            ret = gsSetPredicateFinishKeyByTimestamp(mPredicate,
-                    (const GSTimestamp *) &(finishKey->value.asTimestamp));
-            if (!GS_SUCCEEDED(ret)) {
-                throw GSException(mPredicate, ret);
-            }
-            break;
-        default:
-            throw GSException(mPredicate, "Not support type");
-            break;
+            case GS_TYPE_LONG:
+                ret = gsSetPredicateStartKeyByLong(
+                        mPredicate,
+                        reinterpret_cast<int64_t*>(&startKey->value.asLong));
+                if (!GS_SUCCEEDED(ret)) {
+                    throw GSException(mPredicate, ret);
+                }
+                ret = gsSetPredicateFinishKeyByLong(
+                        mPredicate,
+                        reinterpret_cast<int64_t*>(&finishKey->value.asLong));
+                if (!GS_SUCCEEDED(ret)) {
+                    throw GSException(mPredicate, ret);
+                }
+                break;
+            case GS_TYPE_INTEGER:
+                ret = gsSetPredicateStartKeyByInteger(
+                        mPredicate,
+                        (const int32_t*) &startKey->value.asInteger);
+                if (!GS_SUCCEEDED(ret)) {
+                    throw GSException(mPredicate, ret);
+                }
+                ret = gsSetPredicateFinishKeyByInteger(
+                        mPredicate,
+                        (const int32_t*) &finishKey->value.asInteger);
+                if (!GS_SUCCEEDED(ret)) {
+                    throw GSException(mPredicate, ret);
+                }
+                break;
+            case GS_TYPE_STRING:
+                ret = gsSetPredicateStartKeyByString(mPredicate,
+                                                     startKey->value.asString);
+                if (!GS_SUCCEEDED(ret)) {
+                    throw GSException(mPredicate, ret);
+                }
+                ret = gsSetPredicateFinishKeyByString(
+                        mPredicate, finishKey->value.asString);
+                if (!GS_SUCCEEDED(ret)) {
+                    throw GSException(mPredicate, ret);
+                }
+                break;
+            case GS_TYPE_TIMESTAMP:
+                ret = gsSetPredicateStartKeyByTimestamp(
+                        mPredicate,
+                        (const GSTimestamp*) &(startKey->value.asTimestamp));
+                if (!GS_SUCCEEDED(ret)) {
+                    throw GSException(mPredicate, ret);
+                }
+                ret = gsSetPredicateFinishKeyByTimestamp(
+                        mPredicate,
+                        (const GSTimestamp*) &(finishKey->value.asTimestamp));
+                if (!GS_SUCCEEDED(ret)) {
+                    throw GSException(mPredicate, ret);
+                }
+                break;
+            default:
+                throw GSException(mPredicate, "Not support type");
+                break;
         }
     }
 
@@ -178,44 +200,47 @@ namespace griddb {
      * @param *keys The value of Row key to be added as one of the elements in the individual condition
      * @param keyCount Number of distinct key
      */
-    void RowKeyPredicate::set_distinct_keys(const Field *keys, size_t keyCount) {
+    void RowKeyPredicate::set_distinct_keys(const Field *keys,
+                                            size_t keyCount) {
         assert(keys != NULL);
         GSType key_type = get_key_type();
         GSResult ret;
         for (size_t i = 0; i < keyCount; i++) {
-            const Field* key = keys + i;
+            const Field *key = keys + i;
             assert(key != NULL);
             switch (key_type) {
-            case GS_TYPE_LONG:
-                ret = gsAddPredicateKeyByLong(mPredicate, key->value.asLong);
-                if (!GS_SUCCEEDED(ret)) {
-                    throw GSException(mPredicate, ret);
-                }
-                break;
-            case GS_TYPE_INTEGER:
-                ret = gsAddPredicateKeyByInteger(mPredicate,
-                        key->value.asInteger);
-                if (!GS_SUCCEEDED(ret)) {
-                    throw GSException(mPredicate, ret);
-                }
-                break;
-            case GS_TYPE_STRING:
-                ret = gsAddPredicateKeyByString(mPredicate, key->value.asString);
-                if (!GS_SUCCEEDED(ret)) {
-                    throw GSException(mPredicate, ret);
-                }
+                case GS_TYPE_LONG:
+                    ret = gsAddPredicateKeyByLong(mPredicate,
+                                                  key->value.asLong);
+                    if (!GS_SUCCEEDED(ret)) {
+                        throw GSException(mPredicate, ret);
+                    }
+                    break;
+                case GS_TYPE_INTEGER:
+                    ret = gsAddPredicateKeyByInteger(mPredicate,
+                                                     key->value.asInteger);
+                    if (!GS_SUCCEEDED(ret)) {
+                        throw GSException(mPredicate, ret);
+                    }
+                    break;
+                case GS_TYPE_STRING:
+                    ret = gsAddPredicateKeyByString(mPredicate,
+                                                    key->value.asString);
+                    if (!GS_SUCCEEDED(ret)) {
+                        throw GSException(mPredicate, ret);
+                    }
 
-                break;
-            case GS_TYPE_TIMESTAMP:
-                ret = gsAddPredicateKeyByTimestamp(mPredicate,
-                        key->value.asTimestamp);
-                if (!GS_SUCCEEDED(ret)) {
-                    throw GSException(mPredicate, ret);
-                }
-                break;
-            default:
-                throw GSException(mPredicate, "Not support type");
-                break;
+                    break;
+                case GS_TYPE_TIMESTAMP:
+                    ret = gsAddPredicateKeyByTimestamp(mPredicate,
+                                                       key->value.asTimestamp);
+                    if (!GS_SUCCEEDED(ret)) {
+                        throw GSException(mPredicate, ret);
+                    }
+                    break;
+                default:
+                    throw GSException(mPredicate, "Not support type");
+                    break;
             }
         }
     }
@@ -225,42 +250,45 @@ namespace griddb {
      * @param **keys A pointer refers to list of Row key value
      * @param *keyCount A pointer stores number of distinct key
      */
-    void RowKeyPredicate::get_distinct_keys(Field **keys, size_t* keyCount) {
+    void RowKeyPredicate::get_distinct_keys(Field **keys, size_t *keyCount) {
         assert(keys != NULL);
         assert(keyCount != NULL);
 
         size_t size;
         GSType key_type = get_key_type();
-        GSValue * keyList;
-        GSResult ret = gsGetPredicateDistinctKeysGeneral(mPredicate, (const GSValue **)&keyList, &size);
+        GSValue *keyList;
+        GSResult ret = gsGetPredicateDistinctKeysGeneral(
+                mPredicate, (const GSValue**) &keyList, &size);
         if (!GS_SUCCEEDED(ret)) {
             throw GSException(mPredicate, ret);
         }
         *keyCount = size;
 
-        Field* keyFields;
+        Field *keyFields;
         try {
-            keyFields = new Field[size](); //will be free in typemap out
+            keyFields = new Field[size]();  // Will be free in typemap out
             for (int i = 0; i < size; i++) {
                 keyFields[i].type = key_type;
-                switch(key_type) {
-                case GS_TYPE_STRING:
-                    if (keyList[i].asString) {
-                        Util::strdup(&(keyFields[i].value.asString), keyList[i].asString);
-                    } else {
-                        keyFields[i].value.asString = NULL;
-                    }
-                    break;
-                default:
-                    keyFields[i].value = keyList[i];
-                    break;
+                switch (key_type) {
+                    case GS_TYPE_STRING:
+                        if (keyList[i].asString) {
+                            Util::strdup(&(keyFields[i].value.asString),
+                                         keyList[i].asString);
+                        } else {
+                            keyFields[i].value.asString = NULL;
+                        }
+                        break;
+                    default:
+                        keyFields[i].value = keyList[i];
+                        break;
                 }
             }
             *keys = keyFields;
-        } catch (bad_alloc& ba) {
+        } catch (std::bad_alloc &ba) {
             if (keyFields) {
                 for (int i = 0; i < size; i++) {
-                    if (keyFields[i].type == GS_TYPE_STRING && keyFields[i].value.asString) {
+                    if (keyFields[i].type == GS_TYPE_STRING
+                            && keyFields[i].value.asString) {
                         delete[] keyFields[i].value.asString;
                     }
                 }
@@ -269,7 +297,6 @@ namespace griddb {
 
             throw GSException(mPredicate, "Memory allocation error");
         }
-
     }
 
     /**
