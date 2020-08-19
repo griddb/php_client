@@ -39,14 +39,14 @@
 %attribute(griddb::ExpirationInfo, int, divisionCount, get_division_count, set_division_count);
 
 // rename all method to camel cases
-%rename(getMessageException) griddb::GSException::get_message;
-%rename(getCodeException) griddb::GSException::get_code;
+%rename(getErrorMessage) griddb::GSException::get_message;
 %rename("%(lowercamelcase)s", %$isfunction) "";
 
 /*
  * ignore unnecessary functions
  */
 %ignore griddb::ContainerInfo::ContainerInfo(GSContainerInfo* containerInfo);
+%ignore griddb::GSException::get_code;
 
 /**
  * Support throw exception in PHP language
@@ -320,15 +320,19 @@
             case GS_TYPE_BOOL: {
                 bool boolVal;
                 boolVal = (bool) zval_is_true(data1);
-                ret = gsSetRowFieldByLong(row, column, boolVal);
+                ret = gsSetRowFieldByBool(row, column, boolVal);
             }
             case GS_TYPE_BYTE: {
                 int8_t byteVal;
                 if(Z_TYPE_P(value) != IS_LONG) {
                     return false;
                 }
-                shortVal = Z_LVAL_P(value);
-                ret = gsSetRowFieldByShort(row, column, shortVal);
+                byteVal = Z_LVAL_P(value);
+                if (byteVal < std::numeric_limits<int8_t>::min() || 
+                        byteVal > std::numeric_limits<int8_t>::max()) {
+                    return false;
+                }
+                ret = gsSetRowFieldByByte(row, column, byteVal);
             }
             case GS_TYPE_SHORT: {
                 int16_t byteVal;
@@ -339,6 +343,46 @@
                 ret = gsSetRowFieldByShort(row, column, shortVal);
             }
             case GS_TYPE_INTEGER: {
+                int32_t intVal;
+                if(Z_TYPE_P(value) != IS_LONG) {
+                    return false;
+                }
+                intVal = Z_LVAL_P(value);
+                ret = gsSetRowFieldByInteger(row, column, intVal);
+            }
+            case GS_TYPE_FLOAT: {
+                int32_t intVal;
+                if(Z_TYPE_P(value) != IS_LONG) {
+                    return false;
+                }
+                intVal = Z_LVAL_P(value);
+                ret = gsSetRowFieldByInteger(row, column, intVal);
+            }
+            case GS_TYPE_DOUBLE: {
+                int32_t intVal;
+                if(Z_TYPE_P(value) != IS_LONG) {
+                    return false;
+                }
+                intVal = Z_LVAL_P(value);
+                ret = gsSetRowFieldByInteger(row, column, intVal);
+            }
+            case GS_TYPE_DOUBLE: {
+                int32_t intVal;
+                if(Z_TYPE_P(value) != IS_LONG) {
+                    return false;
+                }
+                intVal = Z_LVAL_P(value);
+                ret = gsSetRowFieldByInteger(row, column, intVal);
+            }
+            case GS_TYPE_TIMESTAMP: {
+                int32_t intVal;
+                if(Z_TYPE_P(value) != IS_LONG) {
+                    return false;
+                }
+                intVal = Z_LVAL_P(value);
+                ret = gsSetRowFieldByInteger(row, column, intVal);
+            }
+            case GS_TYPE_BLOB: {
                 int32_t intVal;
                 if(Z_TYPE_P(value) != IS_LONG) {
                     return false;
