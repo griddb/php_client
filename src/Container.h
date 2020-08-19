@@ -40,6 +40,7 @@ class Container {
     ~Container();
     void close(GSBool allRelated = GS_FALSE);
     GSContainerType get_type();
+    void set_type(GSContainerType type);
     void create_index(const char *column_name, GSIndexTypeFlags index_type =
                               GS_INDEX_FLAG_DEFAULT);
     void drop_index(const char *column_name, GSIndexTypeFlags index_type =

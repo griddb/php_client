@@ -50,6 +50,7 @@ class RowSet {
     ~RowSet();
     void close();
     int32_t size();
+    void set_size(int32_t size);
     // Iterator
     bool has_next();
     void next(GSRowSetType *type, bool *hasNextRow,
@@ -58,6 +59,7 @@ class RowSet {
     void update(GSRow *row);
     void remove();
     GSRowSetType type();
+    void set_type(GSRowSetType type);
     void get_column_names(char ***listName, int *num);
     QueryAnalysisEntry* get_next_query_analysis();
     AggregationResult* get_next_aggregation();

@@ -32,6 +32,7 @@ class PartitionController {
     ~PartitionController();
     void close();
     int32_t get_partition_count();
+    void set_partition_count(int32_t partition_count);
     int64_t get_container_count(int32_t partition_index);
     void get_container_names(int32_t partition_index, int64_t start,
                              const GSChar *const**stringList, size_t *size,

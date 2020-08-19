@@ -139,6 +139,13 @@ namespace griddb {
     }
 
     /**
+     * @brief Thrown exception when set size of this rowset
+     */
+    void RowSet::set_size(int32_t size) {
+        throw GSException(mRowSet,
+                          "Can't not set value for RowSet::size attribute");
+    }
+    /**
      * @brief Delete current row data.
      */
     void RowSet::remove() {
@@ -177,6 +184,13 @@ namespace griddb {
         return mType;
     }
 
+    /**
+     * @brief Thrown exception when set current row type.
+     */
+    void RowSet::set_type(GSRowSetType type) {
+        throw GSException(mRowSet,
+                          "Can't not set value for RowSet::type attribute");
+    }
     /**
      * @brief Get next query analysis
      * @return Represents one of information entries composing a query plan and the results of analyzing a query operation.

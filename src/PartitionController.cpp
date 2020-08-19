@@ -59,6 +59,13 @@ namespace griddb {
     }
 
     /**
+     * @brief Thrown exception when set partition count
+     */
+    void PartitionController::set_partition_count(int32_t partition_count) {
+        throw GSException(mController, "Can't not set value for"
+                " PartitionController::partitionCount attribute");
+    }
+    /**
      * @brief Get container partition count
      * @param partition_index The partition index, from 0 to the number of partitions minus one
      * @return The number of Container

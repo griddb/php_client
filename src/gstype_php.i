@@ -36,40 +36,40 @@
 %include <attribute.i>
 
 // Read only attribute Container::type
-%attribute(griddb::Container, int, type, get_type);
+%attribute(griddb::Container, int, type, get_type, set_type);
 // Read only attribute GSException::isTimeout
 %attribute(griddb::GSException, bool, isTimeout, is_timeout);
 // Read only attribute RowSet::size
-%attribute(griddb::RowSet, int32_t, size, size);
+%attribute(griddb::RowSet, int32_t, size, size, set_size);
 // Read only attribute RowSet::type
-%attribute(griddb::RowSet, GSRowSetType, type, type);
-// Read only attribute ContainerInfo::name
+%attribute(griddb::RowSet, GSRowSetType, type, type, set_type);
+// Read and write attribute ContainerInfo::name
 %attribute(griddb::ContainerInfo, GSChar*, name, get_name, set_name);
-// Read only attribute ContainerInfo::type
+// Read and write attribute ContainerInfo::type
 %attribute(griddb::ContainerInfo, GSContainerType, type, get_type, set_type);
-// Read only attribute ContainerInfo::rowKey
+// Read and write attribute ContainerInfo::rowKey
 %attribute(griddb::ContainerInfo, bool, rowKey,
            get_row_key_assigned, set_row_key_assigned);
-// Read only attribute ContainerInfo::columnInfoArray
+// Read and write attribute ContainerInfo::columnInfoArray
 %attributeval(griddb::ContainerInfo, ColumnInfoList, columnInfoArray,
               get_column_info_list, set_column_info_list);
-// Read only attribute ContainerInfo::expiration
+// Read and write attribute ContainerInfo::expiration
 %attribute(griddb::ContainerInfo, griddb::ExpirationInfo*, expiration,
            get_expiration_info, set_expiration_info);
-// Read only attribute ExpirationInfo::time
+// Read and write attribute ExpirationInfo::time
 %attribute(griddb::ExpirationInfo, int, time, get_time, set_time);
-// Read only attribute ExpirationInfo::unit
+// Read and write attribute ExpirationInfo::unit
 %attribute(griddb::ExpirationInfo, GSTimeUnit, unit,
            get_time_unit, set_time_unit);
-// Read only attribute ExpirationInfo::divisionCount
+// Read and write attribute ExpirationInfo::divisionCount
 %attribute(griddb::ExpirationInfo, int, divisionCount,
            get_division_count, set_division_count);
 // Read only attribute Store::partitionController
 %attribute(griddb::Store, griddb::PartitionController*,
-           partitionController, partition_info);
+           partitionController, partition_info, set_partition_info);
 // Read only attribute PartitionController::partitionCount
 %attribute(griddb::PartitionController, int, partitionCount,
-           get_partition_count);
+           get_partition_count, set_partition_count);
 
 /*
  * Ignore unnecessary functions
@@ -108,6 +108,8 @@ static void throwGSException(griddb::GSException* exception) {
     zend_function* constructor = zend_std_get_constructor(Z_OBJ(ex));
     zend_call_method(&ex, ce, &constructor, NULL, 0, &ctorRv,
                      1, &resource, NULL TSRMLS_CC);
+
+    // Check if no references remaining to ctorRv variable, then destroy it
     if (Z_TYPE(ctorRv) != IS_UNDEF) {
         zval_ptr_dtor(&ctorRv);
     }
@@ -227,7 +229,8 @@ static void throwGSException(griddb::GSException* exception) {
  * "columnInfoArray" : array, "type" : int, 'rowKey' : boolean,
  * "expiration" : expiration object)
  */
-%typemap(in, numinputs = 1, fragment = "freeArgContainerInfo")
+%typemap(in, numinputs = 1, fragment = "freeArgContainerInfo",
+         fragment = "checkTypeIsLongBool")
         (const GSChar* name, const GSColumnInfo* props, int propsCount,
                 GSContainerType type, bool row_key,
                 griddb::ExpirationInfo* expiration)
@@ -348,7 +351,7 @@ static void throwGSException(griddb::GSException* exception) {
             }
             $4 = Z_LVAL_P(dataContainerInfo);
         } else if (strcmp(name, "rowKey") == 0) {
-            if (Z_TYPE_P(dataContainerInfo) == IS_STRING) {
+            if (!checkTypeIsLongBool(dataContainerInfo)) {
                 freeArgContainerInfo($2);
                 SWIG_exception(E_ERROR, "Expected boolean as input"
                         " for rowKey property");
@@ -383,10 +386,10 @@ static void throwGSException(griddb::GSException* exception) {
 }
 
 %fragment("freeArgContainerInfo", "header") {
-    //SWIG_exception does not include freearg, so we need this function
-    static void freeArgContainerInfo(const GSColumnInfo* props) {
+//SWIG_exception does not include freearg, so we need this function
+static void freeArgContainerInfo(const GSColumnInfo* props) {
     if (props) {
-      delete[] props;
+        delete[] props;
     }
 }
 }
@@ -394,7 +397,8 @@ static void throwGSException(griddb::GSException* exception) {
 %fragment("convertToFieldWithType", "header",
         fragment = "convertZvalValueToFloat",
         fragment = "convertZvalValueToDouble",
-        fragment = "convertDateTimeObjectToGSTimestamp") {
+        fragment = "convertDateTimeObjectToGSTimestamp",
+        fragment = "checkTypeIsLongBool") {
 static bool convertToFieldWithType(GSRow *row, int column,
                                    zval* value, GSType type) {
     GSResult returnCode;
@@ -425,7 +429,7 @@ static bool convertToFieldWithType(GSRow *row, int column,
             break;
         }
         case GS_TYPE_BOOL: {
-            if (Z_TYPE_P(value) == IS_STRING) {
+            if (!checkTypeIsLongBool(value)) {
                 return false;
             }
             bool boolVal;
@@ -515,8 +519,8 @@ static bool convertToFieldWithType(GSRow *row, int column,
             break;
         }
         default:
-        return false;
-        break;
+            return false;
+            break;
     }
     return (GS_SUCCEEDED(returnCode));
 }
@@ -807,8 +811,9 @@ static bool getRowFields(GSRow* row, int columnCount,
             if (!GS_SUCCEEDED(returnCode)) {
                 break;
             }
-            add_index_string(outList, i,
-                             reinterpret_cast<const char*>(blobValue.data));
+            add_index_stringl(outList, i,
+                              reinterpret_cast<const char*>(blobValue.data),
+                              blobValue.size);
             break;
         }
         case GS_TYPE_BOOL: {
@@ -969,6 +974,44 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp,
 }
 
 /**
+ * Support convert AggregationResult object from C++ layer to PHP language
+ */
+%fragment("convertToAgrregationResultZvalObj", "header") {
+static void convertToAgrregationResultZvalObj(griddb::AggregationResult* aggResult,
+                                           zval* AggregationResultZvalObject) {
+    const char* objTypename = "AggregationResult";
+    size_t objTypenameLen = strlen(objTypename);
+    // Create a resource
+    zval resource;
+
+    SWIG_SetPointerZval(&resource, reinterpret_cast<void *>(aggResult),
+                        $descriptor(griddb::AggregationResult *), 1);
+
+    // Create a PHP AggregationResult object
+    zend_string * objTypenameZend = zend_string_init(objTypename,
+                                                     objTypenameLen, 0);
+    zend_class_entry* ce = zend_lookup_class(objTypenameZend);
+    zend_string_release(objTypenameZend);
+    if (!ce) {
+        SWIG_FAIL();
+    }
+
+    object_and_properties_init(AggregationResultZvalObject, ce, NULL);
+
+    // Constructor, pass resource to constructor argument
+    zval ctorRv;
+    zend_function* constructor = zend_std_get_constructor(Z_OBJ(*AggregationResultZvalObject));
+    zend_call_method(AggregationResultZvalObject, ce, &constructor, NULL,
+                     0, &ctorRv, 1, &resource, NULL TSRMLS_CC);
+
+    // Check if no references remaining to ctorRv variable, then destroy it
+    if (Z_TYPE(ctorRv) != IS_UNDEF) {
+        zval_ptr_dtor(&ctorRv);
+    }
+}
+}
+
+/**
  * Type map for Rowset::next()
  */
 %typemap(in, numinputs = 0) (GSRowSetType* type, bool* hasNextRow,
@@ -984,9 +1027,10 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp,
     $4 = &aggResultTmp;
 }
 
-%typemap(argout, fragment = "getRowFields") (GSRowSetType* type,
-    bool* hasNextRow, griddb::QueryAnalysisEntry** queryAnalysis,
-    griddb::AggregationResult** aggResult) {
+%typemap(argout, fragment = "getRowFields",
+         fragment = "convertToAgrregationResultZvalObj")(GSRowSetType* type,
+                 bool* hasNextRow, griddb::QueryAnalysisEntry** queryAnalysis,
+                 griddb::AggregationResult** aggResult) {
     const int SIZE = 60;
     if (*$2 == false) {
         RETURN_NULL();
@@ -1011,22 +1055,16 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp,
             }
             break;
         }
-        case (GS_ROW_SET_AGGREGATION_RESULT): {
-            SWIG_SetPointerZval(return_value, reinterpret_cast<void *> (*$4),
-                    $descriptor(griddb::AggregationResult *),
-                    SWIG_CAST_NEW_MEMORY);
-
+        case (GS_ROW_SET_AGGREGATION_RESULT):
+            convertToAgrregationResultZvalObj(*$4, return_value);
             break;
-        }
-        case (GS_ROW_SET_QUERY_ANALYSIS): {
+        case (GS_ROW_SET_QUERY_ANALYSIS):
             // Not support now
             SWIG_exception(E_ERROR, "Function is not supportted now");
             break;
-        }
-        default: {
+        default:
             SWIG_exception(E_ERROR, "Invalid Rowset type");
             break;
-        }
     }
 }
 
@@ -1040,17 +1078,16 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp,
 
 %typemap(argout) (griddb::Field *agValue) {
     switch ($1->type) {
-        case GS_TYPE_LONG: {
+        case GS_TYPE_LONG:
             RETVAL_LONG($1->value.asLong);
             break;
-        }
-        case GS_TYPE_DOUBLE: {
+        case GS_TYPE_DOUBLE:
             RETVAL_DOUBLE($1->value.asDouble);
             break;
-        }
         case GS_TYPE_TIMESTAMP:
             convertTimestampToDateTimeObject(&($1->value.asTimestamp),
                                              return_value);
+            break;
         default:
             RETURN_NULL();
     }
@@ -1078,8 +1115,7 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp,
         (HashTable *arrColumnInfoArray, HashPosition posColumnInfoArray,
             zval *dataColumnInfoArray, HashTable *arrColumnInfo,
             HashPosition posColumnInfo, zval *dataColumnInfo,
-            zval *columnName, zval *columnType) {
-    ColumnInfoList infolist;
+            zval *columnName, zval *columnType, ColumnInfoList infolist) {
     int i = 0;
     GSColumnInfo* containerInfo;
     $1 = &infolist;
@@ -1151,12 +1187,12 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp,
 }
 
 %fragment("freeArgColumnInfoList", "header") {
-    //SWIG_exception does not include freearg, so we need this function
-    static void freeArgColumnInfoList(ColumnInfoList* infoList) {
-        if (infoList->columnInfo) {
-            delete[](infoList->columnInfo);
-        }
+//SWIG_exception does not include freearg, so we need this function
+static void freeArgColumnInfoList(ColumnInfoList* infoList) {
+    if (infoList->columnInfo) {
+        delete[](infoList->columnInfo);
     }
+}
 }
 
 /*
@@ -1200,4 +1236,43 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp,
     for (int i = 0; i < size; i++) {
         add_next_index_string(return_value, nameList[i]);
     }
+}
+
+/**
+* Support to check type is long, bool
+*/
+%fragment("checkTypeIsLongBool", "header") {
+static bool checkTypeIsLongBool(zval* value) {
+    if (Z_TYPE_P(value) == IS_NULL || Z_TYPE_P(value) == IS_DOUBLE ||
+            Z_TYPE_P(value) == IS_STRING || Z_TYPE_P(value) == IS_RESOURCE ||
+            Z_TYPE_P(value) == IS_ARRAY || Z_TYPE_P(value) == IS_OBJECT) {
+        return false;
+    }
+    return true;
+}
+}
+
+/**
+* Support to get bool value
+*/
+%typemap(in, fragment = "checkTypeIsLongBool") bool {
+    if (!checkTypeIsLongBool(&$input)) {
+        SWIG_exception(E_ERROR, "Expected boolean value as input");
+    }
+    $1 = zval_is_true(&$input);
+}
+
+/**
+* Support to get integer value
+*/
+%typemap(in, fragment = "checkTypeIsLongBool") int {
+    if (!checkTypeIsLongBool(&$input)) {
+        SWIG_exception(E_ERROR, "Expected integer value as input");
+    }
+    int64_t longVal = Z_LVAL_P(&$input);
+    if (longVal < std::numeric_limits<int32_t>::min() ||
+            longVal > std::numeric_limits<int32_t>::max()) {
+        SWIG_exception(E_ERROR, "This value is out of integer range");
+    }
+    $1 = longVal;
 }

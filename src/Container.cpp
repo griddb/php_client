@@ -198,6 +198,14 @@ namespace griddb {
     }
 
     /**
+     * @brief Thrown exception when set current container type
+     */
+    void Container::set_type(GSContainerType type) {
+        throw GSException(mContainer,
+                          "Can't not set value for Container::type attribute");
+    }
+
+    /**
      * @brief Rolls back the result of the current transaction and starts a
      * new transaction in the manual commit mode.
      */

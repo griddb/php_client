@@ -53,6 +53,7 @@ class Store {
 
     ContainerInfo* get_container_info(const char *name);
     PartitionController* partition_info();
+    void set_partition_info(PartitionController *pattition_controller);
     RowKeyPredicate* create_row_key_predicate(GSType type);
 
  private:

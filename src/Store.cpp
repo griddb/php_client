@@ -178,6 +178,13 @@ namespace griddb {
     }
 
     /**
+     * @brief Thrown exception when set Partition controller.
+     */
+    void Store::set_partition_info(PartitionController *pattition_controller) {
+        throw GSException(mStore,
+                "Can't not set value for Store::partitionController attribute");
+    }
+    /**
      * @brief Create row key predicate.
      * @param type The type of Row key used as a matching condition
      * @return The pointer to a pointer variable to store RowKeyPredicate instance
