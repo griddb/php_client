@@ -29,7 +29,7 @@ class TimestampUtils {
     public:
         TimestampUtils();
         ~TimestampUtils();
-        static int64_t get_time_millis(double timestamp);
+        static int64_t get_time_millis(int64_t timestamp);
 };
 
 } /* namespace griddb */

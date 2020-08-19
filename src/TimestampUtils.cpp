@@ -25,10 +25,10 @@ namespace griddb {
     }
 
     /**
-     * Convert from Python timestamp to GridDB timestamp
+     * Convert from PHP DateTime to GridDB timestamp
      */
-    int64_t TimestampUtils::get_time_millis(double timestamp){
-        return int64_t(timestamp * 1000);
+    int64_t TimestampUtils::get_time_millis(int64_t timestamp){
+        return timestamp;
     }
 
 } /* namespace griddb */

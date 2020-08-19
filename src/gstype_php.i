@@ -40,8 +40,13 @@
 %attribute(griddb::ExpirationInfo, int, divisionCount, get_division_count, set_division_count);
 
 // rename all method to camel cases
-%rename(getErrorMessage) griddb::GSException::get_message;
 %rename("%(lowercamelcase)s", %$isfunction) "";
+
+// "getMessage" is a default final method of Exception class in PHP. So convert name into getErrorMessage
+%rename(getErrorMessage) griddb::GSException::get_message;
+
+// "default" is a PHP keyword. So convert name into DEFAULT_TYPE
+%rename(DEFAULT_TYPE) griddb::IndexType::DEFAULT;
 
 /*
  * ignore unnecessary functions
@@ -531,12 +536,13 @@
 }
 
 /**
- * Typemaps for put_row() function
- */
+* Typemaps for RowSet::update() and Container::put() function
+* The argument "GSRow *row" is not used in the function body, it only for the purpose of typemap matching pattern
+* The actual input data is store in class member and can be get by function getGSRowPtr()
+*/
 %typemap(in, fragment = "convertToFieldWithType") (GSRow *row)
         (HashTable *arr, HashPosition pos, zval* data) {
-    $1 = NULL;
-    const int size = 60;
+    const int SIZE = 60;
     if(Z_TYPE_P(&$input) != IS_ARRAY) {
         SWIG_PHP_Error(E_ERROR, "Expected an array as input");
     }
@@ -556,7 +562,7 @@
                 zend_hash_move_forward_ex(arr, &pos)) {
             GSType type = typeList[pos];
             if (!(convertToFieldWithType(tmpRow, pos, data, type))) {
-                char gsType[size];
+                char gsType[SIZE];
                 sprintf(gsType, "Invalid value for column %d, type should be : %d", pos, type);
                 SWIG_PHP_Error(E_ERROR, gsType);
             }
@@ -569,6 +575,7 @@
  */
 %fragment("convertToRowKeyFieldWithType", "header") {
 static bool convertToRowKeyFieldWithType(griddb::Field &field, zval* value, GSType type) {
+    bool vbool;
     field.type = type;
 
     if (Z_TYPE_P(value) == IS_NULL) {
@@ -603,7 +610,10 @@ static bool convertToRowKeyFieldWithType(griddb::Field &field, zval* value, GSTy
             field.value.asLong = Z_LVAL_P(value);
             break;
         case (GS_TYPE_TIMESTAMP):
-            return convertZvalValueToGSTimestamp(value, &field.value.asTimestamp);
+            vbool = convertZvalValueToGSTimestamp(value, &field.value.asTimestamp);
+            if (!vbool) {
+                return false;
+            }
             break;
         default:
             //Not support for now
@@ -749,8 +759,8 @@ static bool getRowFields(GSRow* row, int columnCount,
  */
 %fragment("convertTimestampToObject", "header") {
 static void convertTimestampToObject(GSTimestamp* timestamp, zval* dateTime) {
-    const int size = 60;
-    char timeStr[size];
+    const int SIZE = 60;
+    char timeStr[SIZE];
     zval functionNameZval;
     zval formatStringZval;
     zval formattedTimePhp;
@@ -790,7 +800,7 @@ static void convertTimestampToObject(GSTimestamp* timestamp, zval* dateTime) {
         bool retVal;
         int errorColumn;
         GSType errorType;
-        const int size = 60;
+        const int SIZE = 60;
 
         // Get row pointer
         GSRow* row = arg1->getGSRowPtr();
@@ -803,7 +813,7 @@ static void convertTimestampToObject(GSTimestamp* timestamp, zval* dateTime) {
                 return_value);
 
         if (retVal == false) {
-            char errorMsg[size];
+            char errorMsg[SIZE];
             sprintf(errorMsg, "Can't get data for field %d with type %d", errorColumn, errorType);
             SWIG_PHP_Error(E_ERROR, errorMsg);
         }
@@ -827,7 +837,7 @@ static void convertTimestampToObject(GSTimestamp* timestamp, zval* dateTime) {
 %typemap(argout, fragment = "getRowFields") (GSRowSetType* type, bool* hasNextRow,
     griddb::QueryAnalysisEntry** queryAnalysis, griddb::AggregationResult** aggResult) {
 
-    const int size = 60;
+    const int SIZE = 60;
     switch (*$1) {
         case (GS_ROW_SET_CONTAINER_ROWS): {
             bool retVal;
@@ -842,7 +852,7 @@ static void convertTimestampToObject(GSTimestamp* timestamp, zval* dateTime) {
                         arg1->getGSTypeList(),
                         &errorColumn, &errorType, return_value);
                 if (retVal == false) {
-                    char errorMsg[size];
+                    char errorMsg[SIZE];
                     sprintf(errorMsg, "Can't get data for field %d with type%d", errorColumn, errorType);
                     SWIG_PHP_Error(E_ERROR, errorMsg);
                 }
@@ -890,4 +900,16 @@ static void convertTimestampToObject(GSTimestamp* timestamp, zval* dateTime) {
     }
 }
 
+/*
+* Typemap for TimestampUtils::get_time_millis: convert DateTime object from target language to timestamp with millisecond in C++ layer
+*/
+%typemap(in, fragement = "convertZvalValueToGSTimestamp") (int64_t timestamp){
+    bool vbool;
+    GSTimestamp timestampValue;
+    vbool = convertZvalValueToGSTimestamp(&$input, &timestampValue);
+    if(!vbool){
+        SWIG_PHP_Error(E_ERROR, "Expected a DateTime object as input");
+    }
+    $1 = timestampValue;
+}
 
