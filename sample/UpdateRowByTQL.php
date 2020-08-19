@@ -1,97 +1,75 @@
 <?php
     include('griddb_php_client.php');
 
-    $factory = StoreFactory::get_default();
+    $factory = StoreFactory::getInstance();
 
     $containerName = "SamplePHP_UpdateRowByTQL";
     $rowCount = 5;
-    $nameList = array("notebook PC", "desktop PC", "keyboard", "mouse", "printer");
-    $numberList = array(108, 72, 25, 45, 62);
-    $rowList = array();
-
-    $queryStr = "SELECT * WHERE id = 4";
-    $update = true;
+    $nameList = ["notebook PC", "desktop PC", "keyboard", "mouse", "printer"];
+    $numberList = [108, 72, 25, 45, 62];
+    $queryString = "SELECT * WHERE id = 4";
+    $id = 4;
 
     try {
         // Get GridStore object
-        $gridstore = $factory->get_store(array("notificationAddress" => $argv[1],
-                        "notificationPort" => $argv[2],
+        $gridstore = $factory->getStore(["host" => $argv[1],
+                        "port" => (int)$argv[2],
                         "clusterName" => $argv[3],
-                        "user" => $argv[4],
-                        "password" => $argv[5]
-                    ));
+                        "username" => $argv[4],
+                        "password" => $argv[5]]);
 
-        // When operations such as container creation and acquisition are performed, it is connected to the cluster.
-        $gridstore->get_container("containerName");
-        echo("Connect to Cluster\n");
+        // Create a collection
+        $conInfo = new ContainerInfo(["name" => $containerName,
+                                   "columnInfoArray" => [["id", Type::INTEGER],
+                                                ["productName", Type::STRING],
+                                                ["count", Type::INTEGER]],
+                                   "type" => ContainerType::COLLECTION,
+                                   "rowKey" => true]);
 
-        // Create a collection container
-        $column0 = array("id" => GS_TYPE_INTEGER);
-        $column1 = array("productName" => GS_TYPE_STRING);
-        $column2 = array("count" => GS_TYPE_INTEGER);
-        $columnInfolist = array($column0, $column1, $column2);
-        $col = $gridstore->put_container($containerName, $columnInfolist, GS_CONTAINER_COLLECTION);
+        $col = $gridstore->putContainer($conInfo);
         echo("Sample data generation: Create Collection name=$containerName\n");
 
-        // Get names for all columns
-        foreach ($column0 as $key => $value) {
-            $column0 = $key;
-        };
-        foreach ($column1 as $key => $value) {
-            $column1 = $key;
-        };
-        foreach ($column2 as $key => $value) {
-            $column2 = $key;
-        };
-        echo("Sample data generation:  column=($column0, $column1, $column2)\n");
-
-        // Create and set row data
+        //Register rows with multiple times
         for ($i = 0; $i < $rowCount; $i++) {
-            // (1)Create an empty Row object
-            $rowList[$i] = $col->create_row();
-
-            // (2)Set the value in the Row object
-            $rowList[$i]->set_field_by_integer(0, $i);
-            $rowList[$i]->set_field_by_string(1, $nameList[$i]);
-            $rowList[$i]->set_field_by_integer(2, $numberList[$i]);
-            echo("Sample data generation: row=($i, $nameList[$i], $numberList[$i])\n");
-            $col->put_row($rowList[$i]);
+            $col->put([$i, $nameList[$i], $numberList[$i]]);
+            echo("Sample data generation: row = ($i, $nameList[$i], $numberList[$i])\n");
         }
         echo("Sample data generation: Put Rows count=$rowCount\n");
 
-
         // Update a row
         // (1)Get the container
-        $col1 = $gridstore->get_container($containerName);
+        $col1 = $gridstore->getContainer($containerName);
         if ($col1 == null) {
             echo("ERROR Container not found. name=$containerName\n");
         }
 
         // (2)Change auto commit mode to false
-        $col1->set_auto_commit(false);
+        $col1->setAutoCommit(false);
 
-        // (3)Execute search with TQL
-        $query = $col1->query($queryStr);
-        $rs = $query->fetch($update);
+        //(3)Execute search with TQL
+        echo("TQL query: $queryString\n");
+        $query = $col1->query($queryString);
+        $rs = $query->fetch(true);
 
         // (4)Get the result
-        while ($rs->has_next()) {
-            // Create an empty Row object
-            $rrow = $col1->create_row();
-            // Get the row
-            $rs->get_next($rrow);
+        while ($rs->hasNext()) {
+            $row = $rs->next();
             // Change the value
-            $rrow->set_field_by_integer(2, 325);
-            // Update the row
-            $rs->update_current($rrow);
+            $row[2] = 325;
+            // Update a row
+            $rs->update($row);
         }
 
         // (5)Commit
         $col1->commit();
-        echo("Update row id=4\n");
+        echo("Update row id=$id\n");
         echo("success!\n");
     } catch (GSException $e) {
-        echo($e->what()."\n");
-        echo($e->get_code()."\n");
+        for ($i= 0; $i < $e->getErrorStackSize(); $i++) {
+            echo("\n[$i]\n");
+            echo($e->getErrorCode($i)."\n");
+            echo($e->getLocation($i)."\n");
+            echo($e->getErrorMessage($i)."\n");
+        }
     }
 ?>

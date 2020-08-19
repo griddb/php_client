@@ -1,40 +1,50 @@
 <?php
     include('griddb_php_client.php');
 
-    $factory = StoreFactory::get_default();
+    $factory = StoreFactory::getInstance();
 
     $containerName = "SamplePHP_RowExpiration";
 
     try {
         // Get GridStore object
-        $gridstore = $factory->get_store(array("notificationAddress" => $argv[1],
-                        "notificationPort" => $argv[2],
+        $gridstore = $factory->getStore(["host" => $argv[1],
+                        "port" => (int)$argv[2],
                         "clusterName" => $argv[3],
-                        "user" => $argv[4],
-                        "password" => $argv[5]
-                    ));
+                        "username" => $argv[4],
+                        "password" => $argv[5]]);
 
-        // When operations such as container creation and acquisition are performed, it is connected to the cluster.
-        $gridstore->get_container("containerName");
-        echo("Connect to Cluster\n");
+        // Set row expiration release
+        $timeProp = new ExpirationInfo(100, TimeUnit::DAY, 5);
 
-        // Create a timeseries container
-        $ts = $gridstore->put_container(
-            $containerName,
-            array(array("date" => GS_TYPE_TIMESTAMP),
-                  array("value" => GS_TYPE_DOUBLE)),
-            GS_CONTAINER_TIME_SERIES,
-            false, // modifiable = false
-            true, // rowKeyAssigned = true
-            false, // columnOrderIgnorable = false
-            100, // rowExpirationTime
-            GS_TIME_UNIT_DAY, // rowExpirationTimeUnit
-            5 // expirationDivisionCount
-        );
-        echo("Create TimeSeries & Set Row Expiration name=$containerName\n");
+        // Create a time series container
+        $conInfo = new ContainerInfo(["name" => $containerName,
+                                   "columnInfoArray" => [["date", Type::TIMESTAMP],
+                                                ["value", Type::DOUBLE]],
+                                   "type" => ContainerType::TIME_SERIES,
+                                   "rowKey" => true,
+                                   "expiration" => $timeProp]);
+        $ts = $gridstore->putContainer($conInfo);
+
+        // Display attribute name, type and rowKey for ContainerInfo
+        $conInformation = $gridstore->getContainerInfo($containerName);
+        echo("ContainerInfo: name = ".$conInformation->name.
+                ", type = ".(($conInformation->type) ? "TIME_SERIES" : "COLLECTION").
+                ", rowKey = ".(($conInformation->rowKey) ? "true" : "false")."\n");
+
+        // Display atribute time, unit, divisionCount for ExpirationInfo
+        $expirationInfo = $conInformation->expiration;
+        echo("ExpirationInfo: time = ".$expirationInfo->time.
+                " , unit = ".$expirationInfo->unit.
+                ", divisionCount = ".$expirationInfo->divisionCount."\n");
+
+        echo("Create TimeSeries & Set Row Expiration name = $containerName\n");
         echo("success!\n");
     } catch (GSException $e) {
-        echo($e->what()."\n");
-        echo($e->get_code()."\n");
+        for ($i= 0; $i < $e->getErrorStackSize(); $i++) {
+            echo("\n[$i]\n");
+            echo($e->getErrorCode($i)."\n");
+            echo($e->getLocation($i)."\n");
+            echo($e->getErrorMessage($i)."\n");
+        }
     }
 ?>
