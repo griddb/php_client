@@ -42,9 +42,9 @@ class StoreFactory {
         ~StoreFactory();
         void close(GSBool allRelated = GS_FALSE);
         static StoreFactory* get_instance();
-        Store* get_store(const char* host=NULL, int32_t port=0, const char* cluster_name=NULL,
-                const char* database=NULL, const char* username=NULL, const char* password=NULL,
-                const char* notification_member=NULL, const char* notification_provider=NULL);
+        Store* get_store(const char* host, int32_t port, const char* cluster_name,
+                const char* database, const char* username, const char* password,
+                const char* notification_member, const char* notification_provider);
         string get_version();
 
     private:
