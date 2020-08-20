@@ -12,6 +12,24 @@ function getTestData($filePath) {
     return $data;
 }
 
+function getTestDataFilter($filePath, $start, $finish) {
+    $file = file_get_contents($filePath, "r");
+    $index = 0;
+    $numberLine = 0;
+    $dataFilter = [];
+    foreach (explode("\n", $file, -1) as $line) {
+        if ($index != 0) {
+            $numberLine++;
+            if ($start <= $numberLine && $finish >= $numberLine) {
+                $data[] = str_getcsv($line, ",");
+            }
+        } else {
+            $index = 1;
+        }
+    }
+    return $data;
+}
+
 // Convert string to bool
 function convertStrToBool($str) {
     if ($str == 'True' || $str == 'TRUE' || $str == 'true'):

@@ -1276,3 +1276,13 @@ static bool checkTypeIsLongBool(zval* value) {
     }
     $1 = longVal;
 }
+
+/**
+* Support to get long value
+*/
+%typemap(in, fragment = "checkTypeIsLongBool") int64_t {
+    if (!checkTypeIsLongBool(&$input)) {
+        SWIG_exception(E_ERROR, "Expected long value as input");
+    }
+    $1 = Z_LVAL_P(&$input);
+}

@@ -18,7 +18,7 @@
 
         //(2)Loop by the number of partitions to get an array of container names
         for ($i = 0; $i < $pcCount; $i++) {
-            $arrayContainerNames = $pc->getContainerNames($i, 0);
+            $arrayContainerNames = $pc->getContainerNames($i, 0, -1);
             $nameCount = sizeof($arrayContainerNames);
             for ($j = 0; $j < $nameCount; $j++) {
                 echo("$arrayContainerNames[$j]\n");
