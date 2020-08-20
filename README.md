@@ -4,6 +4,9 @@ GridDB PHP Client
 
 GridDB PHP Client is developed using GridDB C Client and [SWIG](http://www.swig.org/) (Simplified Wrapper and Interface Generator).
 
+The new PHP Client (0.8) brings improved usability.  
+Main difference to the  old PHP Client (0.5) is as below:
+- Put and get row data without C-based methods defined for each data-type
 
 ## Operating environment
 
