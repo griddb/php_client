@@ -20,20 +20,20 @@ CPPFLAGS_PHP  = $(CPPFLAGS) $(INCLUDES_PHP)
 
 PROGRAM = griddb_php_client.so
 
-SOURCES = 	  src/Resource.cpp \
-		  src/TimeSeriesProperties.cpp	\
-		  src/AggregationResult.cpp	\
+SOURCES = 	  src/TimeSeriesProperties.cpp \
 		  src/ContainerInfo.cpp			\
+  		  src/AggregationResult.cpp	\
 		  src/Container.cpp			\
 		  src/Store.cpp			\
 		  src/StoreFactory.cpp	\
 		  src/PartitionController.cpp	\
 		  src/Query.cpp				\
-		  src/Row.cpp				\
+		  src/QueryAnalysisEntry.cpp			\
 		  src/RowKeyPredicate.cpp	\
 		  src/RowSet.cpp			\
 		  src/TimestampUtils.cpp			\
-
+		  src/Field.cpp \
+		  src/Util.cpp
 
 all: $(PROGRAM)
 

@@ -1,36 +1,36 @@
 <?php
     include('griddb_php_client.php');
 
-    $factory = StoreFactory::get_default();
+    $factory = StoreFactory::getInstance();
 
     try {
         // Get GridStore object
-        $gridstore = $factory->get_store(array("notificationAddress" => $argv[1],
-                        "notificationPort" => $argv[2],
+        $gridstore = $factory->getStore(["host" => $argv[1],
+                        "port" => (int)$argv[2],
                         "clusterName" => $argv[3],
-                        "user" => $argv[4],
-                        "password" => $argv[5]
-                    ));
+                        "username" => $argv[4],
+                        "password" => $argv[5]]);
 
-        // When operations such as container creation and acquisition are performed, it is connected to the cluster.
-        $gridstore->get_container("containerName");
-        echo("Connect to Cluster\n");
-
-        // Get a list of container names
+        // Get an array of container names
         // (1)Get partition controller and number of partitions
-        $pc = $gridstore->get_partition_controller();
-        $pcCount = $pc->get_partition_count();
+        $pc = $gridstore->partitionController;
+        $pcCount = $pc->partitionCount;
 
-        // (2)Loop by the number of partitions to get a list of container names
+        //(2)Loop by the number of partitions to get an array of container names
         for ($i = 0; $i < $pcCount; $i++) {
-            $nameList = $pc->get_partition_container_names($i, 0);
-            $nameCount = sizeof($nameList);
+            $arrayContainerNames = $pc->getContainerNames($i, 0, -1);
+            $nameCount = sizeof($arrayContainerNames);
             for ($j = 0; $j < $nameCount; $j++) {
-                echo("$nameList[$j]\n");
+                echo("$arrayContainerNames[$j]\n");
             }
         }
+        echo("success!\n");
     } catch (GSException $e) {
-        echo($e->what()."\n");
-        echo($e->get_code()."\n");
+        for ($i= 0; $i < $e->getErrorStackSize(); $i++) {
+            echo("\n[$i]\n");
+            echo($e->getErrorCode($i)."\n");
+            echo($e->getLocation($i)."\n");
+            echo($e->getErrorMessage($i)."\n");
+        }
     }
 ?>

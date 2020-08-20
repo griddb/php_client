@@ -1,0 +1,9 @@
+testId, containerType, query, expectedOutput
+BS-007-Aggregation_with_double_timestamp-001,GS_CONTAINER_COLLECTION,select MIN(a_9),0
+BS-007-Aggregation_with_double_timestamp-002,GS_CONTAINER_COLLECTION,select MAX(za),0
+BS-007-Aggregation_with_double_timestamp-003,GS_CONTAINER_COLLECTION,select MIN(A00) from not_exist,1
+BS-007-Aggregation_with_double_timestamp-004,GS_CONTAINER_COLLECTION,select MAX(A00) from not_exist,1
+BS-007-Aggregation_with_double_timestamp-005,GS_CONTAINER_TIME_SERIES,select MIN(a_9),0
+BS-007-Aggregation_with_double_timestamp-006,GS_CONTAINER_TIME_SERIES,select MAX(za),0
+BS-007-Aggregation_with_double_timestamp-007,GS_CONTAINER_TIME_SERIES,select MIN(A00) from not_exist,1
+BS-007-Aggregation_with_double_timestamp-008,GS_CONTAINER_TIME_SERIES,select MAX(A00) from not_exist,1

@@ -1,84 +1,83 @@
 <?php
     include('griddb_php_client.php');
+
     $data = "";
-if (isset($_POST["address"]) && isset($_POST["port"]) && isset($_POST["cluster"]) &&
-    isset($_POST["user"]) && isset($_POST["password"])) {
+    if (isset($_POST["address"]) && isset($_POST["port"]) && isset($_POST["cluster"]) &&
+        isset($_POST["user"]) && isset($_POST["password"])) {
     $address  = $_POST["address"];
     $port     = $_POST["port"];
     $cluster  = $_POST["cluster"];
     $user     = $_POST["user"];
     $password = $_POST["password"];
 
-    $factory = StoreFactory::get_default();
+    $factory = StoreFactory::getInstance();
 
+    $blob = pack('C*', 65, 66, 67, 68, 69, 70, 71, 72, 73, 74);
     $update = true;
 
-    try{
-        //Get GridStore object
-        $gridstore = $factory->get_store(array("notificationAddress" => $address,
-                        "notificationPort" => $port,
+    try {
+        // Get GridStore object
+        $gridstore = $factory->getStore(["host" => $address,
+                        "port" => (int)$port,
                         "clusterName" => $cluster,
-                        "user" => $user,
-                        "password" => $password
-                    ));
+                        "username" => $user,
+                        "password" => $password]);
 
-        //Create Collection
-        $col = $gridstore->put_container("col01", array(array("name" => GS_TYPE_STRING),
-                  array("status" => GS_TYPE_BOOL),
-                  array("count" => GS_TYPE_LONG),
-                  array("lob" => GS_TYPE_BLOB)),
-                  GS_CONTAINER_COLLECTION);
+        // Create a collection container
+        $conInfo = new ContainerInfo(["name" => "col01",
+                                   "columnInfoArray" => [["name", Type::STRING],
+                                                        ["status", Type::BOOL],
+                                                        ["count", Type::LONG],
+                                                        ["lob", Type::BLOB]],
+                                   "type" => ContainerType::COLLECTION,
+                                   "rowKey" => true]);
+        $gridstore->dropContainer("col01");
+        $col = $gridstore->putContainer($conInfo);
 
-        //Change auto commit mode to false
-        $col->set_auto_commit(false);
+        // Change auto commit mode to false
+        $col->setAutoCommit(false);
 
-        //Set an index on the Row-key Column
-        $col->create_index("name", GS_INDEX_FLAG_DEFAULT);
+        // Set an index on the Row-key Column
+        $col->createIndex("name");
 
-        //Set an index on the Column
-        $col->create_index("count", GS_INDEX_FLAG_DEFAULT);
+        // Set an index on the Column
+        $col->createIndex("count");
 
-        //Create and set row data
-        $row = $col->create_row(); //Create row for refer
-        $row->set_field_by_string(0, "name01");
-        $row->set_field_by_bool(1, False);
-        $row->set_field_by_long(2, 1);
-        $row->set_field_by_blob(3, "ABCDEFGHIJ");
+        // Put row: RowKey is "name01"
+        $ret = $col->put(["name01", false, 1, $blob]);
+        // Remove row with RowKey "name01"
+        $col->remove("name01");
 
-        //Put row: RowKey is "name01"
-        $col->put_row($row);
-        $col->commit();
-        $row2 = $col->create_row(); //Create row for refer
-        $col->get_row_by_string("name01", True, $row2); //Get row with RowKey "name01"
-        $col->delete_row_by_string("name01"); //Remove row with RowKey "name01"
+        // Put row: RowKey is "name02"
+        $col->put(["name02", false, 1, $blob]);
+        $col-> commit();
 
-        //Put row: RowKey is "name02"
-        $col->put_row_by_string("name02", $row);
-        $col->commit();
+        $mArray = $col->get("name02");
 
-        //Create normal query
+        // Create normal query
         $query = $col->query("select * where name = 'name02'");
 
-        //Execute query
-        $rrow = $col->create_row();
+        // Execute query
         $rs = $query->fetch($update);
-        while ($rs->has_next()){
-            $rs->get_next($rrow);
+        while ($rs->hasNext()) {
+            $row = $rs->next();
+            $row[2] = $row[2] + 1;
+            $data .= "Person: name=$row[0] status=".($row[1] ? "true" : "false")
+                            ." count=$row[2] lob=$row[3]\n";
 
-            $name = $rrow->get_field_as_string(0);
-            $status = $rrow->get_field_as_bool(1);
-            $count = $rrow->get_field_as_long(2) + 1;
-            $lob = $rrow->get_field_as_blob(3);
-            $data .= "Person: name=" . $name . " status=" . ($status ? 'true' : 'false') . " count=" . $count . " lob=" . $lob . "\n";
-
-            //Update row
-            $rrow->set_field_by_long(2, $count);
-            $rs->update_current($rrow);
+            // Update row
+            $rs->update($row);
         }
-        //End transaction
+
+        // End transction
         $col->commit();
-    } catch(GSException $e){
-        $data = $e->what(). "\n" . $e->get_code() . "\n";
+    } catch (GSException $e) {
+        for ($i= 0; $i < $e->getErrorStackSize(); $i++) {
+            $data = "\n[$i]\n";
+            $data = $e->getErrorCode($i)."\n";
+            $data = $e->getLocation($i)."\n";
+            $data = $e->getErrorMessage($i)."\n";
+        }
     }
 }
 ?>

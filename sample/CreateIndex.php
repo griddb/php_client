@@ -1,45 +1,45 @@
 <?php
     include('griddb_php_client.php');
 
-    $factory = StoreFactory::get_default();
+    $factory = StoreFactory::getInstance();
 
     $containerName = "SamplePHP_Index";
 
     try {
         // Get GridStore object
-        $gridstore = $factory->get_store(array("notificationAddress" => $argv[1],
-                        "notificationPort" => $argv[2],
+        $gridstore = $factory->getStore(["host" => $argv[1],
+                        "port" => (int)$argv[2],
                         "clusterName" => $argv[3],
-                        "user" => $argv[4],
-                        "password" => $argv[5]
-                    ));
-
-        // When operations such as container creation and acquisition are performed, it is connected to the cluster.
-        $gridstore->get_container("containerName");
-        echo("Connect to Cluster\n");
+                        "username" => $argv[4],
+                        "password" => $argv[5]]);
 
         // Create a collection container
-        $col = $gridstore->put_container(
-            $containerName,
-            array(array("id" => GS_TYPE_INTEGER),
-                  array("productName" => GS_TYPE_STRING),
-                  array("count" => GS_TYPE_INTEGER)),
-            GS_CONTAINER_COLLECTION
-        );
+        $conInfo = new ContainerInfo(["name" => $containerName,
+                                   "columnInfoArray" => [["id", Type::INTEGER],
+                                                ["productName", Type::STRING],
+                                                ["count", Type::INTEGER]],
+                                   "type" => ContainerType::COLLECTION,
+                                   "rowKey" => true]);
+
+        $gridstore->putContainer($conInfo);
         echo("Create Collection name=$containerName\n");
 
         // Get the container
-        $container = $gridstore->get_container($containerName);
-        if ($container == null) {
+        $col = $gridstore->getContainer($containerName);
+        if ($col == null) {
             echo("ERROR Container not found. name=$containerName\n");
         }
 
         // Create an index
-        $container->create_index("count", GS_INDEX_FLAG_HASH);
+        $col->createIndex("count", IndexType::HASH, "hash_index");
         echo("Create Index\n");
         echo("success!\n");
     } catch (GSException $e) {
-        echo($e->what()."\n");
-        echo($e->get_code()."\n");
+        for ($i= 0; $i < $e->getErrorStackSize(); $i++) {
+            echo("\n[$i]\n");
+            echo($e->getErrorCode($i)."\n");
+            echo($e->getLocation($i)."\n");
+            echo($e->getErrorMessage($i)."\n");
+        }
     }
 ?>

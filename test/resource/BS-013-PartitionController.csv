@@ -1,0 +1,15 @@
+testID,partitionIndex,start,limit,containerName,hostname,expectedOutput
+BS-013-PartitionController-001,0,,,,,0
+BS-013-PartitionController-002,127,,,,,0
+BS-013-PartitionController-003,-1,,,,,-1
+BS-013-PartitionController-004,0,1,2147483647,,,0
+BS-013-PartitionController-005,-1,2147483647,1,,,-1
+BS-013-PartitionController-006,-2147483649,0,2147483647,,,-1
+BS-013-PartitionController-007,2147483648,0,NULL,,,-1
+BS-013-PartitionController-008,1.1,1,2147483647,,,-1
+BS-013-PartitionController-009,a,1,NULL,,,-1
+BS-013-PartitionController-010,127,-1,1,,,-1
+BS-013-PartitionController-011,127,a,1,,,-1
+BS-013-PartitionController-012,127,-2147483649,1,,,-1
+BS-013-PartitionController-013,,,,PC_1,,0
+BS-013-PartitionController-014,,,,1a_,,-1

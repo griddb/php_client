@@ -1,0 +1,5 @@
+testId, containerType, rowExpirationTime, rowExpirationTimeUnit, expirationDivisionCount, expectedOutput
+BS-016-ExpirationInfo_set_get-001,string,1,0,10,0
+BS-016-ExpirationInfo_set_get-002,integer,9,10,10,0
+BS-016-ExpirationInfo_set_get-003,long,99,100,10,0
+BS-016-ExpirationInfo_set_get-004,timestamp,999,1000,10,0

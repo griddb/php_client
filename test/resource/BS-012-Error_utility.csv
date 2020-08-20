@@ -1,0 +1,33 @@
+testID,Stack index,Buffer size,Expected Output
+Test get_error_stack_size(),,,
+UC-014-Error_utility-001,NA,NA,0
+UC-014-Error_utility-002,NA,NA,0
+Test get_error_code(),,,
+UC-014-Error_utility-003,0,NA,A number different to 0
+UC-014-Error_utility-004,2147483647,NA,0
+UC-014-Error_utility-005,-1,NA,A number different to 0
+UC-014-Error_utility-006,-2147483649,NA,A number different to 0
+UC-014-Error_utility-007,2147483648,NA,0
+UC-014-Error_utility-008,1.1,NA,A number different to 0
+UC-014-Error_utility-009,a,NA,A number different to 0
+Test format_error_message(),,,
+UC-014-Error_utility-010,0,100,"Error message contains ""cluster name invalid"""
+UC-014-Error_utility-011,2147483647,30,Empty string
+UC-014-Error_utility-012,-1,30,Non-empty string
+UC-014-Error_utility-013,-2147483649,30,Non-empty string
+UC-014-Error_utility-014,2147483648,30,Empty string
+UC-014-Error_utility-015,1.1,30,Non-empty string
+UC-014-Error_utility-016,a,30,Non-empty string
+UC-014-Error_utility-018,0,-1,Non-empty string
+UC-014-Error_utility-019,0,-2147483649,Non-empty string
+UC-014-Error_utility-020,0,2147483648,Empty string
+UC-014-Error_utility-021,0,1.1,Empty string
+UC-014-Error_utility-022,0,a,Empty string
+Test format_error_location(),,,
+UC-014-Error_utility-023,0,100,Non-empty string
+UC-014-Error_utility-024,2147483647,30,Empty string
+UC-014-Error_utility-025,-1,30,Non-empty string
+UC-014-Error_utility-026,-2147483649,30,Non-empty string
+UC-014-Error_utility-027,2147483648,30,Empty string
+UC-014-Error_utility-028,1.1,30,Non-empty string
+UC-014-Error_utility-029,a,30,Non-empty string
