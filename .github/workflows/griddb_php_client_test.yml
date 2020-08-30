@@ -1,0 +1,43 @@
+
+name: Install GridDB server, C client, build PHP client and execute test
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-18.04
+    env:
+        GRIDDB_NOTIFICATION_ADDRESS: "239.0.0.1"
+        GRIDDB_NOTIFICATION_PORT: "31999"
+        GRIDDB_CLUSTER_NAME: "griddbubuntu"
+        GRIDDB_USERNAME: "admin"
+        GRIDDB_PASSWORD: "admin"
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Setup environment
+      run: |
+        ./.github/workflows/setup_environment.sh
+
+    - name: Install and start server
+      run: |
+        ./.github/workflows/start_server.sh
+
+    - name: Build GridDB PHP client and export library
+      run: |
+        make
+        echo "extension=/home/runner/work/php_client/php_client/griddb_php_client.so" | sudo tee -a /etc/php/7.4/cli/php.ini
+
+    - name: Run GridDB PHP samples
+      run: |
+         ./.github/workflows/auto_test_samples.sh
+
+    - name: Execute scenario-base-test
+      run: |
+         ./.github/workflows/auto_test_scenario-base-test.sh
+
+    - name: Stop server
+      run: |
+        ./.github/workflows/stop_server.sh
