@@ -77,10 +77,13 @@
 %ignore griddb::ContainerInfo::ContainerInfo(GSContainerInfo* containerInfo);
 %ignore griddb::GSException::get_code;
 %ignore ColumnInfoList;
+%ignore griddb::GSException;
 
 /**
  * Support throw exception in PHP language
  */
+%feature("except");
+
 %fragment("throwGSException", "header") {
 static void throwGSException(griddb::GSException* exception) {
     const char* objTypename = "GSException";
@@ -98,16 +101,18 @@ static void throwGSException(griddb::GSException* exception) {
                                                      objTypenameLen, 0);
     zend_class_entry* ce = zend_lookup_class(objTypenameZend);
     zend_string_release(objTypenameZend);
-    if (!ce) {
-        SWIG_FAIL();
-    }
 
     object_and_properties_init(&ex, ce, NULL);
 
     // Constructor, pass resource to constructor argument
     zend_function* constructor = zend_std_get_constructor(Z_OBJ(ex));
+%#if PHP_VERSION_ID < 80000
     zend_call_method(&ex, ce, &constructor, NULL, 0, &ctorRv,
-                     1, &resource, NULL TSRMLS_CC);
+                     1, &resource, NULL);
+%#else
+    zend_call_method(Z_OBJ(ex), ce, &constructor, NULL, 0, &ctorRv,
+                     1, &resource, NULL);
+%#endif
 
     // Check if no references remaining to ctorRv variable, then destroy it
     if (Z_TYPE(ctorRv) != IS_UNDEF) {
@@ -606,7 +611,7 @@ static bool convertDateTimeObjectToGSTimestamp(zval* datetime,
     };
     call_user_function(EG(function_table), NULL,
             &isAFunctionZval, &isDateTimeZval,
-            ARRAY_SIZE(paramsForIsA), paramsForIsA TSRMLS_CC);
+            ARRAY_SIZE(paramsForIsA), paramsForIsA);
     bool isDateTime = zval_is_true(&isDateTimeZval);
     if (!isDateTime) {
         return false;
@@ -622,7 +627,7 @@ static bool convertDateTimeObjectToGSTimestamp(zval* datetime,
     call_user_function(EG(function_table), NULL,
             &dateTimestampGetFunctionZval,
             &retSecondTimestamp, ARRAY_SIZE(paramsForDateTimestampGet),
-            paramsForDateTimestampGet TSRMLS_CC);
+            paramsForDateTimestampGet);
     int64_t timestampSecond = Z_LVAL(retSecondTimestamp);
 
     // (2)Get timestamp with microsecond
@@ -639,7 +644,7 @@ static bool convertDateTimeObjectToGSTimestamp(zval* datetime,
     call_user_function(EG(function_table), NULL,
             &dateFormatFunctionZval,
             &retMicrosecondTimestamp, ARRAY_SIZE(paramsForDateFormat),
-            paramsForDateFormat TSRMLS_CC);
+            paramsForDateFormat);
     int64_t timestampMicroSecond = atoi(Z_STRVAL(retMicrosecondTimestamp));
 
     // Convert timestamp to milisecond
@@ -935,7 +940,7 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp,
     };
 
     call_user_function(EG(function_table), NULL, &functionNameZval, dateTime,
-            ARRAY_SIZE(params), params TSRMLS_CC);
+            ARRAY_SIZE(params), params);
 }
 }
 
@@ -978,36 +983,9 @@ static void convertTimestampToDateTimeObject(GSTimestamp* timestamp,
  */
 %fragment("convertToAgrregationResultZvalObj", "header") {
 static void convertToAgrregationResultZvalObj(griddb::AggregationResult* aggResult,
-                                           zval* AggregationResultZvalObject) {
-    const char* objTypename = "AggregationResult";
-    size_t objTypenameLen = strlen(objTypename);
-    // Create a resource
-    zval resource;
-
-    SWIG_SetPointerZval(&resource, reinterpret_cast<void *>(aggResult),
+                                           zval* aggregationResultZval) {
+    SWIG_SetPointerZval(aggregationResultZval, reinterpret_cast<void *>(aggResult),
                         $descriptor(griddb::AggregationResult *), 1);
-
-    // Create a PHP AggregationResult object
-    zend_string * objTypenameZend = zend_string_init(objTypename,
-                                                     objTypenameLen, 0);
-    zend_class_entry* ce = zend_lookup_class(objTypenameZend);
-    zend_string_release(objTypenameZend);
-    if (!ce) {
-        SWIG_FAIL();
-    }
-
-    object_and_properties_init(AggregationResultZvalObject, ce, NULL);
-
-    // Constructor, pass resource to constructor argument
-    zval ctorRv;
-    zend_function* constructor = zend_std_get_constructor(Z_OBJ(*AggregationResultZvalObject));
-    zend_call_method(AggregationResultZvalObject, ce, &constructor, NULL,
-                     0, &ctorRv, 1, &resource, NULL TSRMLS_CC);
-
-    // Check if no references remaining to ctorRv variable, then destroy it
-    if (Z_TYPE(ctorRv) != IS_UNDEF) {
-        zval_ptr_dtor(&ctorRv);
-    }
 }
 }
 
