@@ -274,14 +274,14 @@ static void throwGSException(griddb::GSException* exception) {
             (dataContainerInfo = zend_hash_get_current_data_ex(arrContainerInfo, &posContainerInfo)) != NULL;
             zend_hash_move_forward_ex(arrContainerInfo, &posContainerInfo)) {
         if (zend_hash_get_current_key_ex(arrContainerInfo, &key, &index, &posContainerInfo) != HASH_KEY_IS_STRING) {
-            freeArgContainerInfo($2);
+            freeArgContainerInfo(&$2);
             SWIG_exception(E_ERROR, "Expected string as input for key");
         }
 
         name = ZSTR_VAL(key);
         if (strcmp(name, "name") == 0) {
             if (Z_TYPE_P(dataContainerInfo) != IS_STRING) {
-                freeArgContainerInfo($2);
+                freeArgContainerInfo(&$2);
                 SWIG_exception(E_ERROR, "Expected string as input"
                         " for name property");
             }
@@ -289,7 +289,7 @@ static void throwGSException(griddb::GSException* exception) {
         } else if (strcmp(name, "columnInfoArray") == 0) {
             // Input valid is array only
             if (Z_TYPE_P(dataContainerInfo) != IS_ARRAY) {
-                freeArgContainerInfo($2);
+                freeArgContainerInfo(&$2);
                 SWIG_exception(E_ERROR, "Expected array as input"
                         " for columnInfo property");
             }
@@ -298,7 +298,7 @@ static void throwGSException(griddb::GSException* exception) {
             int sizeOfColumnInfoArray = zend_hash_num_elements(arrColumnInfoArray);
             $3 = sizeOfColumnInfoArray;
             if ($3 == 0) {
-                freeArgContainerInfo($2);
+                freeArgContainerInfo(&$2);
                 SWIG_exception(E_ERROR, "Expected not empty array");
             }
             $2 = new GSColumnInfo[$3];
@@ -313,7 +313,7 @@ static void throwGSException(griddb::GSException* exception) {
                     (dataColumnInfoArray = zend_hash_get_current_data_ex(arrColumnInfoArray, &posColumnInfoArray)) != NULL;
                     zend_hash_move_forward_ex(arrColumnInfoArray, &posColumnInfoArray)) {
                 if (Z_TYPE_P(dataColumnInfoArray) != IS_ARRAY) {
-                    freeArgContainerInfo($2);
+                    freeArgContainerInfo(&$2);
                     SWIG_exception(E_ERROR, "Expected array property as"
                             " ColumnInfo element");
                 }
@@ -321,7 +321,7 @@ static void throwGSException(griddb::GSException* exception) {
                 arrColumnInfo = Z_ARRVAL_P(dataColumnInfoArray);
                 int sizeOfColumnInfo = zend_hash_num_elements(arrColumnInfo);
                 if (sizeOfColumnInfo != 2) {
-                    freeArgContainerInfo($2);
+                    freeArgContainerInfo(&$2);
                     SWIG_exception(E_ERROR, "Expected two elements for"
                             " columnInfo property");
                 }
@@ -331,7 +331,7 @@ static void throwGSException(griddb::GSException* exception) {
                                                     &posColumnInfo);
                 if (Z_TYPE_P(columnName = zend_hash_get_current_data_ex(
                         arrColumnInfo, &posColumnInfo)) != IS_STRING) {
-                    freeArgContainerInfo($2);
+                    freeArgContainerInfo(&$2);
                     SWIG_exception(E_ERROR, "Expected string as column name");
                 }
 
@@ -341,7 +341,7 @@ static void throwGSException(griddb::GSException* exception) {
                 zend_hash_move_forward_ex(arrColumnInfo, &posColumnInfo);
                 if (Z_TYPE_P(columnType = zend_hash_get_current_data_ex(
                         arrColumnInfo, &posColumnInfo)) != IS_LONG) {
-                    freeArgContainerInfo($2);
+                    freeArgContainerInfo(&$2);
                     SWIG_exception(E_ERROR, "Expected an integer as"
                             " column type");
                 }
@@ -350,14 +350,14 @@ static void throwGSException(griddb::GSException* exception) {
             }
         } else if (strcmp(name, "type") == 0) {
             if (Z_TYPE_P(dataContainerInfo) != IS_LONG) {
-                freeArgContainerInfo($2);
+                freeArgContainerInfo(&$2);
                 SWIG_exception(E_ERROR, "Expected integer as input"
                         " for type property");
             }
             $4 = Z_LVAL_P(dataContainerInfo);
         } else if (strcmp(name, "rowKey") == 0) {
             if (!checkTypeIsLongBool(dataContainerInfo)) {
-                freeArgContainerInfo($2);
+                freeArgContainerInfo(&$2);
                 SWIG_exception(E_ERROR, "Expected boolean as input"
                         " for rowKey property");
             }
@@ -368,13 +368,13 @@ static void throwGSException(griddb::GSException* exception) {
                                       $descriptor(griddb::ExpirationInfo*),
                                       0 | 0);
             if (!SWIG_IsOK(res)) {
-                freeArgContainerInfo($2);
+                freeArgContainerInfo(&$2);
                 SWIG_exception(E_ERROR, "Expected expiration object"
                         " as input for expiration property");
             }
             $6 = (griddb::ExpirationInfo *) expiration;
         } else {
-            freeArgContainerInfo($2);
+            freeArgContainerInfo(&$2);
             SWIG_exception(E_ERROR, "Invalid Property");
         }
     }
@@ -387,14 +387,15 @@ static void throwGSException(griddb::GSException* exception) {
         (const GSChar* name, const GSColumnInfo* props,
                 int propsCount, GSContainerType type, bool row_key,
                 griddb::ExpirationInfo* expiration) {
-    freeArgContainerInfo($2);
+    freeArgContainerInfo(&$2);
 }
 
 %fragment("freeArgContainerInfo", "header") {
 //SWIG_exception does not include freearg, so we need this function
-static void freeArgContainerInfo(const GSColumnInfo* props) {
-    if (props) {
-        delete[] props;
+static void freeArgContainerInfo(GSColumnInfo** props) {
+    if (*props) {
+        delete[] *props;
+        *props = NULL;
     }
 }
 }
@@ -1169,6 +1170,7 @@ static void convertToAgrregationResultZvalObj(griddb::AggregationResult* aggResu
 static void freeArgColumnInfoList(ColumnInfoList* infoList) {
     if (infoList->columnInfo) {
         delete[](infoList->columnInfo);
+        infoList->columnInfo = NULL;
     }
 }
 }
