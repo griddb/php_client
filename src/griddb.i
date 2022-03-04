@@ -28,7 +28,6 @@
 %ignore griddb::AggregationResult::AggregationResult;
 %ignore griddb::QueryAnalysisEntry::QueryAnalysisEntry;
 %ignore griddb::TimeSeriesProperties;
-%ignore griddb::GSException::GSException;
 %ignore griddb::TimestampUtils::TimestampUtils;
 
 %include "gstype.i"

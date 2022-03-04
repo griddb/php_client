@@ -1,7 +1,10 @@
 <?php
 namespace Tests;
 use PHPUnit\Framework\TestCase;
-require_once ('griddb_php_client.php');
+if (file_exists('griddb_php_client.php')) {
+    // File php wrapper is generated with SWIG 4.0.2 and below
+    require_once('griddb_php_client.php');
+}
 require_once('config.php');
 require_once('utility.php');
 

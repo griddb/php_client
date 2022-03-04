@@ -4,29 +4,48 @@ GridDB PHP Client
 
 GridDB PHP Client is developed using GridDB C Client and [SWIG](http://www.swig.org/) (Simplified Wrapper and Interface Generator).
 
-The new PHP Client (0.8) brings improved usability.  
-Main difference to the  old PHP Client (0.5) is as below:
-- Put and get row data without C-based methods defined for each data-type
 
 ## Operating environment
 
 Building of the library and execution of the sample programs have been checked in the following environment.
 
-    OS:              CentOS 7.8(x64)
-    SWIG:            4.0.0
+    OS:              CentOS 7.9(x64)
+    SWIG:            4.1.0 (commit: d22b7dfaea1f7abd4f3d0baecc1a1eddff827561)
     GCC:             4.8.5
-    PHP:             7.4.7
-    GridDB Server:   4.5 (CE)
-    GridDB C Client: 4.5 (CE)
+    PHP:             8.0/8.1
+    GridDB Server:   4.6 (CE)
+    GridDB C Client: 4.6 (CE)
+
+    OS:              CentOS 8.5(x64)
+    SWIG:            4.1.0 (commit: d22b7dfaea1f7abd4f3d0baecc1a1eddff827561)
+    GCC:             8.3.1
+    PHP:             8.0/8.1
+    GridDB Server:   4.6 (CE)
+    GridDB C Client: 4.6 (CE)
+
+    OS:              Ubuntu 18.04(x64)
+    SWIG:            4.1.0 (commit: d22b7dfaea1f7abd4f3d0baecc1a1eddff827561)
+    GCC:             7.5.0
+    PHP:             8.0/8.1
+    GridDB Server:   4.6 (CE)
+    GridDB C Client: 4.6 (CE)
+
+    OS:              Ubuntu 20.04(x64)
+    SWIG:            4.1.0 (commit: d22b7dfaea1f7abd4f3d0baecc1a1eddff827561)
+    GCC:             10.3.0
+    PHP:             8.0/8.1
+    GridDB Server:   4.6 (CE)
+    GridDB C Client: 4.6 (CE)
 
 ## QuickStart
 ### Preparations
 
 Install SWIG as below.
 
-    $ wget https://prdownloads.sourceforge.net/swig/swig-4.0.0.tar.gz
-    $ tar xvfz swig-4.0.0.tar.gz
-    $ cd swig-4.0.0
+    $ git clone https://github.com/swig/swig.git
+    $ cd swig
+    $ git checkout d22b7dfaea1f7abd4f3d0baecc1a1eddff827561
+    $ ./autogen.sh
     $ ./configure
     $ make
     $ sudo make install
@@ -34,7 +53,7 @@ Install SWIG as below.
     Note: If CentOS, you might need to install pcre in advance.
     $ sudo yum install pcre2-devel.x86_64
 
-Install PHP7.4.7 and GridDB C Client.
+Install PHP 8 and GridDB C Client.
 
 Set LIBRARY_PATH.
 
@@ -45,8 +64,6 @@ Set LIBRARY_PATH.
     1. Execute the command on project directory.
 
     $ make
-
-    2. Include 'griddb_php_client.php' in PHP.
 
 ### How to run sample (with Command Line)
 
@@ -72,7 +89,7 @@ GridDB Server need to be started in advance.
 
 In the case of Web Server: Apache/2.4.6, please use the following steps.
 
-    1. Store griddb_php_client.php and sample/sample1_web.php in /var/www/html.
+    1. Store sample/sample1_web.php in /var/www/html.
 
     2. Store griddb_php_client.so in /usr/lib64/php/modules.
 

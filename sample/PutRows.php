@@ -6,7 +6,9 @@
 
     $factory = StoreFactory::getInstance();
 
-    $containerName = "SamplePHP_collection1";
+    $containerName = "SamplePHP_PutRows";
+    $rowCount = 5;
+    $rowArray = [];
 
     try {
         // Get GridStore object
@@ -16,7 +18,7 @@
                         "username" => $argv[4],
                         "password" => $argv[5]]);
 
-        // Create a collection container
+        // Create a collection
         $conInfo = new ContainerInfo(["name" => $containerName,
                                    "columnInfoArray" => [["id", Type::INTEGER],
                                                 ["productName", Type::STRING],
@@ -25,7 +27,24 @@
                                    "rowKey" => true]);
 
         $col = $gridstore->putContainer($conInfo);
-        echo("Create Collection name = $containerName\n");
+        echo("Create Collection name=$containerName\n");
+
+        // Register multiple rows
+        // (1)Get the container
+        $col1 = $gridstore->getContainer($containerName);
+        if ($col1 == null) {
+            echo("ERROR Container not found. name=$containerName\n");
+        }
+
+        // Register multiple rows
+        for ($i = 0; $i < $rowCount; $i++) {
+            $row = [];
+            array_push($row, $i, "dvd", 10*$i);
+            array_push($rowArray, $row);
+        }
+        $col1->multiPut($rowArray);
+
+        echo("Put rows\n");
         echo("success!\n");
     } catch (GSException $e) {
         for ($i= 0; $i < $e->getErrorStackSize(); $i++) {

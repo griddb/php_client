@@ -1,5 +1,8 @@
 <?php
-    include('griddb_php_client.php');
+    if (file_exists('griddb_php_client.php')) {
+        // File php wrapper is generated with SWIG 4.0.2 and below
+        include_once('griddb_php_client.php');
+    }
 
     $data = "";
     if (isset($_POST["address"]) && isset($_POST["port"]) && isset($_POST["cluster"]) &&
