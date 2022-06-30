@@ -55,6 +55,19 @@ Install SWIG as below.
 
 Install PHP 8 and GridDB C Client.
 
+Examples of installing PHP 8.1 are as below.
+
+    (CentOS 7)
+    $ sudo yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    $ sudo yum install -y https://rpms.remirepo.net/enterprise/remi-release-7.rpm
+    $ sudo yum install -y --enablerepo=remi-php81 php php-cli php-devel
+
+    (Ubuntu 18.04/20.04)
+    $ sudo apt install lsb-release ca-certificates apt-transport-https software-properties-common -y
+    $ sudo add-apt-repository ppa:ondrej/php -y
+    $ sudo apt update
+    $ sudo apt install php8.1 php8.1-dev
+
 Set LIBRARY_PATH.
 
     export LIBRARY_PATH=$LIBRARY_PATH:<C client library file directory path>
