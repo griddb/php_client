@@ -1,5 +1,13 @@
 GridDB PHP Client
 
+## Maintenance Status
+
+This repository is currently archived and is not actively maintained.  
+The software was developed and tested with older versions of PHP and related dependencies, which are no longer supported.  
+The repository may be unarchived when support for newer environments is implemented.
+
+---
+
 ## Overview
 
 GridDB PHP Client is developed using GridDB C Client and [SWIG](http://www.swig.org/) (Simplified Wrapper and Interface Generator).
